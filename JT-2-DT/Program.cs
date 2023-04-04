@@ -3,6 +3,6 @@ using JT_2_DT;
 
 Console.WriteLine("Hello, World!");
 
-Tree tree = new();
+JoinTree tree = new();
 
 // construct the minimal tree

@@ -8,11 +8,11 @@ namespace JT_2_DT
 {
     using Family = HashSet<int>;
 
-    internal class Tree
+    internal class JoinTree
     {
         // connections
-        public Tree? Parent { get; set; }
-        public List<Tree> Children { get; set; } = new();
+        public JoinTree? Parent { get; set; }
+        public List<JoinTree> Children { get; set; } = new();
 
         // settings
         public Family Cluster { get; set; } = new();
@@ -68,7 +68,7 @@ namespace JT_2_DT
 
             if (fam.IsSubsetOf(Cluster))
             {
-                Tree newNode = new()
+                JoinTree newNode = new()
                 {
                     Cluster = fam,
                     _isFamilyNode = true
@@ -86,13 +86,13 @@ namespace JT_2_DT
         }
 
         // static tools
-        private static void Connect(Tree parent, Tree child)
+        private static void Connect(JoinTree parent, JoinTree child)
         {
             parent.Children.Add(child);
             child.Parent = parent;
         }
 
-        private static void CopySettings(Tree target, Tree source)
+        private static void CopySettings(JoinTree target, JoinTree source)
         {
             target._isFamilyNode = source._isFamilyNode;
             target.Cluster = new(source.Cluster);
@@ -125,7 +125,7 @@ namespace JT_2_DT
                 TakeOver();
             }
 
-            Tree target = this;
+            JoinTree target = this;
             while (target.Children.Count > 2)
             {
                 target = target.Extend();
@@ -136,10 +136,10 @@ namespace JT_2_DT
         /// Extend this node by choosing 1 child, move every other child into a new node, and make that new node (extension) this node's second child.
         /// </summary>
         /// <returns>the extension node</returns>
-        private Tree Extend()
+        private JoinTree Extend()
         {
             var leftChild = Children[0];
-            Tree extension = new();
+            JoinTree extension = new();
             CopySettings(extension, this);
             
             foreach (var child in Children.Where(x => x != leftChild))
