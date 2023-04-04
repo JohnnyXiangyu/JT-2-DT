@@ -6,67 +6,115 @@ using System.Threading.Tasks;
 
 namespace JT_2_DT
 {
+    using Family = HashSet<int>;
+
     internal class Tree
     {
+        // connections
         public Tree? Parent { get; set; }
         public List<Tree> Children { get; set; } = new();
-        public HashSet<int> Cluster { get; set; } = new();
 
-        public static void Connect(Tree parent, Tree child)
+        // settings
+        public Family Cluster { get; set; } = new();
+        private bool _isFamilyNode = false;
+
+        // properties (real-time)
+        public bool IsJoinTree { get { throw new NotImplementedException(); } }
+        public bool IsLeaf { get => Children.Count == 0; }
+        public int JoinTreeWidth
+        {
+            get
+            {
+                int result = Cluster.Count;
+
+                foreach (var child in Children)
+                {
+                    if (child.Cluster.Count > result)
+                    {
+                        result = child.Cluster.Count;
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        public void MakeDTree(IEnumerable<Family> families)
+        {
+            List<Task> tasks = new();
+            foreach (var family in families)
+            {
+                tasks.Add(Task.Run(() => 
+                {
+                    InsertFamily(family);
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Recursively add a family into the tree.
+        /// </summary>
+        /// <param name="fam"></param>
+        /// <returns>boolean, success or not</returns>
+        private bool InsertFamily(Family fam)
+        {
+            foreach (var child in Children)
+            {
+                if (child.InsertFamily(fam))
+                {
+                    return true;
+                }
+            }
+
+            if (fam.IsSubsetOf(Cluster))
+            {
+                Tree newNode = new()
+                {
+                    Cluster = fam,
+                    _isFamilyNode = true
+                };
+
+                lock (this)
+                {
+                    Children.Add(newNode);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        // static tools
+        private static void Connect(Tree parent, Tree child)
         {
             parent.Children.Add(child);
             child.Parent = parent;
         }
 
-        public void AddChildren(IEnumerable<Tree> newChildren)
+        private static void CopySettings(Tree target, Tree source)
         {
-            foreach (var child in newChildren)
-            {
-                Children.Add(child);
-            }
-        }
-
-        public bool ContainsInCluster(HashSet<int> family)
-        {
-            return family.IsSubsetOf(Cluster);
-        }
-        
-        public bool IsJoinTree(IEnumerable<HashSet<int>> families)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsDTree(IEnumerable<HashSet<int>> families)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int JoinTreeWidth()
-        {
-            int result = 0;
-
-            foreach (var child in Children)
-            {
-                if (child.Cluster.Count > result)
-                {
-                    result = child.Cluster.Count;
-                }
-            }
-
-            return result;
-        }
-
-        public int DTreeWidth()
-        {
-            throw new NotImplementedException();
+            target._isFamilyNode = source._isFamilyNode;
+            target.Cluster = new(source.Cluster);
         }
 
         /// <summary>
         /// Recursively resolve the entire tree rooted at this node.
+        /// Resolve has 3 cases:
+        ///     1. leaf node that's not directly a added family node -> remove this node;
+        ///     2. non-leaf node with exactly one child -> take over the child;
+        ///     3. non-leaf node with more than 2 children -> extend this node until there's no overflow of children.
         /// </summary>
-        /// <returns>the root of the resolved tree</returns>
         private void Resolve()
         {
+            // for leaves
+            if (!_isFamilyNode && Children.Count == 0)
+            {
+                Parent?.Children.Remove(this);
+                Decompose();
+                return;
+            }
+
             foreach (var child in Children)
             {
                 child.Resolve();
@@ -92,6 +140,7 @@ namespace JT_2_DT
         {
             var leftChild = Children[0];
             Tree extension = new();
+            CopySettings(extension, this);
             
             foreach (var child in Children.Where(x => x != leftChild))
             {
@@ -125,13 +174,17 @@ namespace JT_2_DT
                 throw new Exception("collapsing when not exactly one child left");
             }
 
-            // take over the only child
+            // reconnect children
             var taker = Children[0];
             Children.Clear();
             foreach (var child in taker.Children)
             {
                 Connect(this, child);
             }
+
+            // copy settings
+            CopySettings(this, taker);
+
             taker.Decompose();
         }
     }
