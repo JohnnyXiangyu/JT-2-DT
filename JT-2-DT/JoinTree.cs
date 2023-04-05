@@ -40,16 +40,10 @@ namespace JT_2_DT
 
         public void MakeDTree(IEnumerable<Family> families)
         {
-            List<Task> tasks = new();
             foreach (var family in families)
             {
-                //tasks.Add(Task.Run(() => 
-                //{
-                //    InsertFamily(family);
-                //}));
                 InsertFamily(family);
             }
-            // Task.WaitAll(tasks.ToArray());
 
             Resolve();
         }
