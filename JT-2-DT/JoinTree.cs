@@ -16,27 +16,7 @@ namespace JT_2_DT
 
         // settings
         public Family Cluster { get; set; } = new();
-        private bool _isFamilyNode = false;
-
-        // properties (real-time)
-        public bool IsLeaf { get => Children.Count == 0; }
-        public int JoinTreeWidth
-        {
-            get
-            {
-                int result = Cluster.Count;
-
-                foreach (var child in Children)
-                {
-                    if (child.Cluster.Count > result)
-                    {
-                        result = child.Cluster.Count;
-                    }
-                }
-
-                return result;
-            }
-        }
+        public bool Protected { get; set; } = false;
 
         public void MakeDTree(IEnumerable<Family> families)
         {
@@ -48,12 +28,12 @@ namespace JT_2_DT
             Resolve();
         }
 
-        public void Print()
+        public void PrintAt()
         {
-            Print("  ");
+            PrintAt("  ");
         }
 
-        public void Print(string indent)
+        public void PrintAt(string indent)
         {
             StringBuilder builder = new();
             foreach (var variable in Cluster)
@@ -65,7 +45,7 @@ namespace JT_2_DT
 
             foreach (var child in Children)
             {
-                child.Print($"{indent}{indent}");
+                child.PrintAt($"{indent}{indent}");
             }
         }
 
@@ -89,7 +69,7 @@ namespace JT_2_DT
                 JoinTree newNode = new()
                 {
                     Cluster = fam,
-                    _isFamilyNode = true
+                    Protected = true
                 };
 
                 lock (this)
@@ -112,7 +92,7 @@ namespace JT_2_DT
 
         private static void CopySettings(JoinTree target, JoinTree source)
         {
-            target._isFamilyNode = source._isFamilyNode;
+            target.Protected = source.Protected;
             target.Cluster = new(source.Cluster);
         }
 
@@ -126,7 +106,7 @@ namespace JT_2_DT
         private void Resolve()
         {
             // for leaves
-            if (!_isFamilyNode && Children.Count == 0)
+            if (!Protected && Children.Count == 0)
             {
                 Parent?.Children.Remove(this);
                 Decompose();

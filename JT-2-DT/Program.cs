@@ -29,9 +29,9 @@ Family ac = new(new[] { a, c });
 Family bcd = new(new[] { b, c, d });
 Family cd = new(new[] { c, e });
 
-node_2.Print();
+node_2.PrintAt();
 
 Console.WriteLine("\nabracadabra\n");
 node_2.MakeDTree(new[] {ab, ac, bcd, cd });
 
-node_2.Print();
+node_2.PrintAt();
