@@ -19,7 +19,6 @@ namespace JT_2_DT
         private bool _isFamilyNode = false;
 
         // properties (real-time)
-        public bool IsJoinTree { get { throw new NotImplementedException(); } }
         public bool IsLeaf { get => Children.Count == 0; }
         public int JoinTreeWidth
         {
@@ -44,10 +43,35 @@ namespace JT_2_DT
             List<Task> tasks = new();
             foreach (var family in families)
             {
-                tasks.Add(Task.Run(() => 
-                {
-                    InsertFamily(family);
-                }));
+                //tasks.Add(Task.Run(() => 
+                //{
+                //    InsertFamily(family);
+                //}));
+                InsertFamily(family);
+            }
+            // Task.WaitAll(tasks.ToArray());
+
+            Resolve();
+        }
+
+        public void Print()
+        {
+            Print("  ");
+        }
+
+        public void Print(string indent)
+        {
+            StringBuilder builder = new();
+            foreach (var variable in Cluster)
+            {
+                builder.Append(variable.ToString());
+            }
+            Console.Write(indent);
+            Console.WriteLine(builder.ToString());
+
+            foreach (var child in Children)
+            {
+                child.Print($"{indent}{indent}");
             }
         }
 
@@ -86,7 +110,7 @@ namespace JT_2_DT
         }
 
         // static tools
-        private static void Connect(JoinTree parent, JoinTree child)
+        public static void Connect(JoinTree parent, JoinTree child)
         {
             parent.Children.Add(child);
             child.Parent = parent;
