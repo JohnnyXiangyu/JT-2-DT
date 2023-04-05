@@ -3,8 +3,6 @@ using JT_2_DT;
 
 using Family = System.Collections.Generic.HashSet<int>;
 
-Console.WriteLine("Hello, World!");
-
 JoinTree node_1 = new();
 JoinTree node_2 = new();
 JoinTree node_3 = new();
@@ -33,6 +31,7 @@ Family cd = new(new[] { c, e });
 
 node_2.Print();
 
+Console.WriteLine("\nabracadabra\n");
 node_2.MakeDTree(new[] {ab, ac, bcd, cd });
 
 node_2.Print();
