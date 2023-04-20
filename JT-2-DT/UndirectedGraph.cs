@@ -96,34 +96,46 @@ namespace JT_2_DT
                 {
                     var children = _edges[nextLeaf].Intersect(processedNodes);
 
-                    while (children.Count() > 2)
+                    if (children.Count() == 1)
                     {
-                        bool first = true;
-
-                        // add an intermediate node and connect it to nextleaf
-                        int newIntermediate = _edges.Count;
-                        _edges.Add(new(){ nextLeaf });
-                        _edges[nextLeaf].Add(newIntermediate);
-
-                        // move each node except for the last one to the new node
                         foreach (int child in children)
                         {
-                            if (!first)
-                            {
-                                // remove from nextLeaf
-                                _edges[nextLeaf].Remove(child);
-                                _edges[child].Remove(nextLeaf);
-
-                                // add to newIntermediate
-                                AddEdge(child, newIntermediate);
-                            }
-                            else
-                            {
-                                first = false;
-                            }
+                            _edges[nextLeaf].Remove(child);
+                            _edges[child].Remove(nextLeaf);
+                            AddEdge(child, parent);
                         }
+                    }
+                    else
+                    {
+                        while (children.Count() > 2)
+                        {
+                            bool first = true;
 
-                        children = _edges[newIntermediate].Intersect(processedNodes);
+                            // add an intermediate node and connect it to nextleaf
+                            int newIntermediate = _edges.Count;
+                            _edges.Add(new() { nextLeaf });
+                            _edges[nextLeaf].Add(newIntermediate);
+
+                            // move each node except for the last one to the new node
+                            foreach (int child in children)
+                            {
+                                if (!first)
+                                {
+                                    // remove from nextLeaf
+                                    _edges[nextLeaf].Remove(child);
+                                    _edges[child].Remove(nextLeaf);
+
+                                    // add to newIntermediate
+                                    AddEdge(child, newIntermediate);
+                                }
+                                else
+                                {
+                                    first = false;
+                                }
+                            }
+
+                            children = _edges[newIntermediate].Intersect(processedNodes);
+                        }
                     }
 
                     pendingNodes.Enqueue(nextLeaf);
