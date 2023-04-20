@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace JT_2_DT
+﻿namespace JT_2_DT
 {
     internal class UndirectedJtree
     {
-        private UndirectedGraph _tree;
-        private HashSet<int>[] _clusterMapping;
+        private readonly UndirectedGraph _tree;
+        private readonly List<HashSet<int>> _clusterMapping;
         private int _nodeCount;
 
         public UndirectedJtree(int vertexCount)
         {
             _nodeCount = vertexCount;
             _tree = new(vertexCount);
-            _clusterMapping = new HashSet<int>[vertexCount];
+            _clusterMapping = new List<HashSet<int>>(vertexCount);
             for (int i = 0; i < vertexCount; i++)
             {
-                _clusterMapping[i] = new();
+                _clusterMapping.Add(new());
             }
 
             throw new NotImplementedException();
@@ -29,18 +23,30 @@ namespace JT_2_DT
 
         public void MakeDtree(IEnumerable<IEnumerable<int>> families)
         {
-            // naive parallelism
-            List<Task> tasks = new();
-            int newNodeIndex = _nodeCount;
+            // extend current infrastructure
+            HashSet<int> oldLeaves = new(_tree.Leaves);
             foreach (var fam in families)
             {
-                int newNodeIndexHere = newNodeIndex;
-                tasks.Add(Task.Run(() => InsertFamily(fam, newNodeIndexHere)));
-                newNodeIndex++;
+                _clusterMapping.Add(new(fam));
             }
+            _tree.ExtendNode(families.Count());
+            
+            // insert the families into the tree
+            var tasks = families.Select((fam, index) => Task.Run(() =>
+            {
+                int newNodeIndexHere = _nodeCount + index;
+                InsertFamily(fam, newNodeIndexHere);
+            }));
             Task.WaitAll(tasks.ToArray());
 
-            Resolve();
+            // purge out useless leaves
+            _tree.PurgeLeavesInRange(oldLeaves);
+            
+            // finalize insertion by updating node count
+            _nodeCount += families.Count();
+
+            // last step is to resolve the tree to ensure it's a full binary tree
+            _tree.ResolveToFullBinaryTree();
         }
 
         private void InsertFamily(IEnumerable<int> family, int newIndex)
@@ -54,11 +60,6 @@ namespace JT_2_DT
             }
 
             throw new FamilyNotClusteredException();
-        }
-
-        private void Resolve()
-        {
-            throw new NotImplementedException();
         }
 
         public class FamilyNotClusteredException : Exception { }
