@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace JT_2_DT
 {
@@ -33,7 +29,7 @@ namespace JT_2_DT
             PrintAt("  ");
         }
 
-        public void PrintAt(string indent)
+        private void PrintAt(string indent)
         {
             StringBuilder builder = new();
             foreach (var variable in Cluster)
