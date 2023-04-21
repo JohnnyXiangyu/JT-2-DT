@@ -1,15 +1,17 @@
-﻿namespace JT_2_DT
+﻿using System.Text;
+
+namespace JT_2_DT
 {
     internal class MoralGraph
     {
-        public Dictionary<int, HashSet<int>> AllEdgesBySmallVar { get; private set; }
+        public List<HashSet<int>> AllEdgesBySmallVar { get; private set; }
         public int VerticeCount { get => _formula.VariableCount; }
         public int EdgeCount
         {
             get
             {
                 int edgeCount = 0;
-                foreach ((int _, HashSet<int> set) in AllEdgesBySmallVar)
+                foreach (HashSet<int> set in AllEdgesBySmallVar)
                 {
                     edgeCount += set.Count;
                 };
@@ -19,14 +21,15 @@
 
         private readonly Cnf _formula;
 
-        public MoralGraph(string CnfPath)
+
+        public MoralGraph(Cnf formula)
         {
-            _formula = new(CnfPath);
-            AllEdgesBySmallVar = new();
+            _formula = formula;
+            AllEdgesBySmallVar = new(_formula.VariableCount);
 
-            List<Task> tasks = new List<Task>(_formula.VariableCount);
+            Task[] tasks = new Task[_formula.VariableCount];
 
-            for (int i = 1; i <= _formula.VariableCount; i++)
+            for (int i = 0; i < _formula.VariableCount; i++)
             {
                 int variable = i;
                 var newEdges = new HashSet<int>();
@@ -35,21 +38,21 @@
                 {
                     foreach (IEnumerable<int> clause in _formula.Clauses)
                     {
-                        if (clause.Any(x => x == variable))
+                        if (clause.Any(x => x - 1 == variable))
                         {
                             foreach (int other in clause)
                             {
-                                if (other > variable)
+                                if (other - 1 > variable)
                                 {
-                                    newEdges.Add(other);
+                                    newEdges.Add(other - 1);
                                 }
                             }
                         }
-                        
+
                     }
                 });
 
-                AllEdgesBySmallVar[variable] = newEdges;
+                AllEdgesBySmallVar.Add(newEdges);
             }
 
             Task.WaitAll(tasks.ToArray());
@@ -60,14 +63,24 @@
             using var stream = File.OpenWrite(outPath);
             using var writer = new StreamWriter(stream);
 
-            writer.WriteLine($"p tw {_formula.VariableCount} {EdgeCount}");
-            foreach ((int v1, HashSet<int> neighbours) in AllEdgesBySmallVar)
+            writer.Write(Serialize());
+        }
+
+        public string Serialize()
+        {
+            StringBuilder builder = new();
+
+            builder.AppendLine($"p tw {_formula.VariableCount} {EdgeCount}");
+            for (int v1 = 0; v1 < AllEdgesBySmallVar.Count; v1 ++)
             {
+                var neighbours = AllEdgesBySmallVar[v1];
                 foreach (int v2 in neighbours)
                 {
-                    writer.WriteLine($"{v1} {v2}");
+                    builder.AppendLine($"{v1 + 1} {v2 + 1}");
                 }
             }
+
+            return builder.ToString();  
         }
     }
 }
