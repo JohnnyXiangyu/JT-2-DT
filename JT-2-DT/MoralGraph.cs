@@ -38,13 +38,13 @@ namespace JT_2_DT
                 {
                     foreach (IEnumerable<int> clause in _formula.Clauses)
                     {
-                        if (clause.Any(x => x - 1 == variable))
+                        if (clause.Any(x => x == variable))
                         {
                             foreach (int other in clause)
                             {
-                                if (other - 1 > variable)
+                                if (other > variable)
                                 {
-                                    newEdges.Add(other - 1);
+                                    newEdges.Add(other);
                                 }
                             }
                         }

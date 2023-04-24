@@ -38,7 +38,7 @@ namespace JT_2_DT
                             {
                                 if (i[0] != '0')
                                 {
-                                    newClause.Add(Math.Abs(int.Parse(i)));
+                                    newClause.Add(Math.Abs(int.Parse(i)) - 1);
                                 }
                             }
 

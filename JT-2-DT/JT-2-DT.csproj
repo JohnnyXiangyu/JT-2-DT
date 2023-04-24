@@ -9,14 +9,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Examples\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Examples\ex001.td">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Examples\sat-grid-pbl-0010.cnf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Examples\short_cnf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Examples\short_jtree.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="external_executables\tw.jar">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
