@@ -2,8 +2,8 @@
 using System.Diagnostics;
 
 // TestJtreeImplementation();
-TestJtreeImplementationLong();
-// RunTestBench();
+// TestJtreeImplementationLong();
+RunTestBench();
 // TestMoralGraphImplementation();
 
 void TestJtreeImplementationShort()
@@ -33,12 +33,11 @@ void TestMoralGraphImplementation()
 
 void RunTestBench()
 {
-    Cnf formula = new(@"Examples\sat-grid-pbl-0010.cnf");
+    Cnf formula = new(Path.Combine("Examples", "sat-grid-pbl-0010.cnf"));
     MoralGraph graph = new(formula);
 
     string tempGrFilename = Path.GetTempFileName();
     graph.OutputToFile(tempGrFilename);
-    Console.WriteLine(graph.Serialize());
 
     // compute the tree decomposition
     string tempTdFilename = Path.GetTempFileName();
@@ -52,7 +51,7 @@ void RunTestBench()
     Dtree dtree = new(tempTdFilename, formula.Clauses);
     foreach (var line in dtree.SerializeAsDtree())
     {
-        Console.WriteLine(line);
+        Console.WriteLine(line());
     }
 
     // finally release the temp files

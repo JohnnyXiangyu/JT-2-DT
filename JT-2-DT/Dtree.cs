@@ -234,39 +234,13 @@ namespace JT_2_DT
                     }
                     else
                     {
+                        int target = currentLeaf;
                         while (children.Count() > 2)
                         {
-                            bool first = true;
-
-                            // add an intermediate node and connect it to nextleaf
-                            int newIntermediate = _edges.Count;
-                            _edges.Add(new() { currentLeaf });
-                            _edges[currentLeaf].Add(newIntermediate);
-                            _nodeCount++;
-                            _clusterMapping.Add(_clusterMapping[currentLeaf]);
-
-                            // move each node except for the last one to the new node
-                            foreach (int child in children)
-                            {
-                                if (child == newIntermediate)
-                                    continue;
-
-                                if (first)
-                                {
-                                    first = false;
-                                }
-                                else
-                                {
-                                    // remove from nextLeaf
-                                    _edges[currentLeaf].Remove(child);
-                                    _edges[child].Remove(currentLeaf);
-
-                                    // add to newIntermediate
-                                    AddEdge(child, newIntermediate);
-                                }
-                            }
+                            int newIntermediate = ExtendNode(target, children);
 
                             children = _edges[newIntermediate].Intersect(processedNodes);
+                            target = newIntermediate;
                         }
                     }
 
@@ -288,6 +262,47 @@ namespace JT_2_DT
             }
 
             return conventionalRoot;
+        }
+
+        private int ExtendNode(int target, IEnumerable<int> children)
+        {
+            bool first = true;
+
+            // add an intermediate node and connect it to nextleaf
+            int newIntermediate = DuplicateBag(target);
+
+            // move each node except for the last one to the new node
+            foreach (int child in children)
+            {
+                if (child == newIntermediate)
+                    continue;
+
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    // remove from nextLeaf
+                    _edges[target].Remove(child);
+                    _edges[child].Remove(target);
+
+                    // add to newIntermediate
+                    AddEdge(child, newIntermediate);
+                }
+            }
+
+            return newIntermediate;
+        }
+
+        private int DuplicateBag(int target)
+        {
+            int newIntermediate = _edges.Count;
+            _edges.Add(new() { target });
+            _edges[target].Add(newIntermediate);
+            _nodeCount++;
+            _clusterMapping.Add(_clusterMapping[target]);
+            return newIntermediate;
         }
 
         public Func<string>[] SerializeAsDtree()
