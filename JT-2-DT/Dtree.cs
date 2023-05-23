@@ -13,6 +13,8 @@ namespace JT_2_DT
         private int _nodeCount;
         private int _rootByConvention;
 
+        
+
         public Dtree(string filePath, IEnumerable<IEnumerable<int>> families, bool useCleanCompiler = false)
         {
             LoadTreeDecompFile(filePath);
@@ -208,7 +210,39 @@ namespace JT_2_DT
         /// <param name="families">families from CNF, including all subsumed</param>
         private void MakeCleanDtree(IEnumerable<IEnumerable<int>> families)
         {
+            HashSet<int> oldLeaves = new(Leaves);
 
+            // clean up families
+            foreach (var fam in families)
+            {
+
+            }
+
+            foreach (var fam in families)
+            {
+                _clusterMapping.Add(new(fam));
+            }
+            ExtendNode(families.Count());
+
+            // insert the families into the tree
+            var tasks = families.Select((fam, index) => Task.Run(() =>
+            {
+                // index := index of clause
+                // fam := the family created from this clause (reduced to a hashset)
+                int newNodeIndex = _nodeCount + index;
+                InsertFamily(fam, newNodeIndex);
+                _nodeToClauseIndex[newNodeIndex] = index;
+            }));
+            Task.WaitAll(tasks.ToArray());
+
+            // purge out useless leaves
+            PurgeLeavesInRange(oldLeaves);
+
+            // finalize insertion by updating node count
+            _nodeCount += families.Count();
+
+            // last step is to resolve the tree to ensure it's a full binary tree
+            _rootByConvention = ResolveAsBinaryTree();
         }
 
         /// <summary>
