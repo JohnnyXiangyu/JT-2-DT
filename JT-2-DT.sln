@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JT-2-DT", "JT-2-DT\JT-2-DT.csproj", "{57533059-C511-43F6-A33A-CFABA7589B01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JT-2-DT", "JT-2-DT\JT-2-DT.csproj", "{57533059-C511-43F6-A33A-CFABA7589B01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{CE8D895F-B0EA-4797-A00D-BC0B1903C4BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{57533059-C511-43F6-A33A-CFABA7589B01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57533059-C511-43F6-A33A-CFABA7589B01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57533059-C511-43F6-A33A-CFABA7589B01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE8D895F-B0EA-4797-A00D-BC0B1903C4BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE8D895F-B0EA-4797-A00D-BC0B1903C4BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE8D895F-B0EA-4797-A00D-BC0B1903C4BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE8D895F-B0EA-4797-A00D-BC0B1903C4BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
