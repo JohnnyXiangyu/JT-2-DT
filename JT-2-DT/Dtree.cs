@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace JT_2_DT
 {
-    internal class Dtree
+    public class Dtree
     {
         public HashSet<int> Leaves { get; private set; } = new HashSet<int>();
 

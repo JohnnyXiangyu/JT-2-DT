@@ -1,6 +1,6 @@
 ﻿namespace JT_2_DT
 {
-    internal class Cnf
+    public class Cnf
     {
         public int VariableCount { get; set; }
         public List<List<int>> Clauses { get; set; }

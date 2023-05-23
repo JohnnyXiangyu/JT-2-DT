@@ -2,7 +2,7 @@
 
 namespace JT_2_DT
 {
-    internal class MoralGraph
+    public class MoralGraph
     {
         public List<HashSet<int>> AllEdgesBySmallVar { get; private set; }
         public int VerticeCount { get => _formula.VariableCount; }
