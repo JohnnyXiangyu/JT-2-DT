@@ -7,7 +7,7 @@ namespace UnitTests;
 public class BenchTests
 {
     [TestMethod]
-    public void MiniBenchAllowDuplicates()
+    public void MiniBenchDirty()
     {
         Stopwatch timer = Stopwatch.StartNew();
 
@@ -41,7 +41,7 @@ public class BenchTests
     }
 
     [TestMethod]
-    public void MiniBenchRemoveDuplicates()
+    public void MiniBenchClean()
     {
         Stopwatch timer = Stopwatch.StartNew();
 
