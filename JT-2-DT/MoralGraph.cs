@@ -76,7 +76,7 @@ namespace JT_2_DT
                 var neighbours = AllEdgesBySmallVar[v1];
                 foreach (int v2 in neighbours)
                 {
-                    builder.AppendLine($"{v1 + 1} {v2 + 1}");
+                    builder.AppendLine($"{v1} {v2}");
                 }
             }
 
