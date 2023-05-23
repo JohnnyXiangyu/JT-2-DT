@@ -13,12 +13,15 @@ namespace JT_2_DT
         private int _nodeCount;
         private int _rootByConvention;
 
-        
+        private readonly bool _cleanBuild;
+        List<HashSet<int>>? _mostInclusiveFamilies;
+        Dictionary<int, List<IEnumerable<int>>>? _familyToSubsumedOnes;
 
         public Dtree(string filePath, IEnumerable<IEnumerable<int>> families, bool useCleanCompiler = false)
         {
             LoadTreeDecompFile(filePath);
-
+            
+            _cleanBuild = useCleanCompiler;
             if (useCleanCompiler)
             {
                 MakeDtree(families);
@@ -212,20 +215,45 @@ namespace JT_2_DT
         {
             HashSet<int> oldLeaves = new(Leaves);
 
+            _mostInclusiveFamilies = new();
+            _familyToSubsumedOnes = new();
+            
             // clean up families
             foreach (var fam in families)
             {
+                bool included = false;
+                for (int i = 0; i < _mostInclusiveFamilies.Count; i ++)
+                {
+                    if (_mostInclusiveFamilies[i].IsSupersetOf(fam))
+                    {
+                        _familyToSubsumedOnes[i].Add(fam);
+                        included = true;
+                        break;
+                    }
+                    else if (_mostInclusiveFamilies[i].IsSubsetOf(fam))
+                    {
+                        _familyToSubsumedOnes[i].Add(_mostInclusiveFamilies[i]);
+                        _mostInclusiveFamilies[i] = new(fam);
+                        included = true;
+                        break;
+                    }
+                }
 
+                if (!included)
+                {
+                    _mostInclusiveFamilies.Add(new(fam));
+                    _familyToSubsumedOnes[_mostInclusiveFamilies.Count - 1] = new();
+                }
             }
 
-            foreach (var fam in families)
+            foreach (var fam in _mostInclusiveFamilies)
             {
-                _clusterMapping.Add(new(fam));
+                _clusterMapping.Add(fam);
             }
-            ExtendNode(families.Count());
+            ExtendNode(_mostInclusiveFamilies.Count);
 
             // insert the families into the tree
-            var tasks = families.Select((fam, index) => Task.Run(() =>
+            var tasks = _mostInclusiveFamilies.Select((fam, index) => Task.Run(() =>
             {
                 // index := index of clause
                 // fam := the family created from this clause (reduced to a hashset)
@@ -239,7 +267,7 @@ namespace JT_2_DT
             PurgeLeavesInRange(oldLeaves);
 
             // finalize insertion by updating node count
-            _nodeCount += families.Count();
+            _nodeCount += _mostInclusiveFamilies.Count;
 
             // last step is to resolve the tree to ensure it's a full binary tree
             _rootByConvention = ResolveAsBinaryTree();
@@ -393,13 +421,7 @@ namespace JT_2_DT
             return newIntermediate;
         }
 
-        /// <summary>
-        /// Convert internal data structures into a dtree file recognizable by C2D.
-        /// It's designed with this signature to defer evaluation in an effort to avoid 
-        /// inverted dependency between creation of serialized node and reference to serialized node.
-        /// </summary>
-        /// <returns>a sequence of lambdas that return each line of the desired output file</returns>
-        public Func<string>[] SerializeAsDtree()
+        private Func<string>[] SerializeDirtyDtree()
         {
             // start with the conventional root, run a top-down bfs
             UniqueQueue<int> pendingNodes = new(new int[] { _rootByConvention });
@@ -426,9 +448,9 @@ namespace JT_2_DT
                     int c1 = children.ElementAt(0);
                     int c2 = children.ElementAt(1);
 
-                    result[internalIndex] = () => 
+                    result[internalIndex] = () =>
                     {
-                        return $"I {graphNodeToSerializeNode[c1]} {graphNodeToSerializeNode[c2]}"; 
+                        return $"I {graphNodeToSerializeNode[c1]} {graphNodeToSerializeNode[c2]}";
                     };
                     outputIndexUsed = internalIndex;
                     internalIndex++;
@@ -451,6 +473,71 @@ namespace JT_2_DT
             }
 
             return result;
+        }
+
+        private Func<string>[] SerializeCleanDtree()
+        {
+            // start with the conventional root, run a top-down bfs
+            UniqueQueue<int> pendingNodes = new(new int[] { _rootByConvention });
+            HashSet<int> processedNodes = new();
+            Dictionary<int, int> graphNodeToSerializeNode = new();
+
+            // initialize the result array statically
+            Func<string>[] result = new Func<string>[2 * Leaves.Count];
+            result[0] = () => $"dtree {2 * Leaves.Count - 1}";
+
+            // partition the array into 2 segments
+            int leafIndex = 1;
+            int internalIndex = leafIndex + Leaves.Count;
+
+            while (pendingNodes.Any())
+            {
+                int currentNode = pendingNodes.SafeDequeue();
+                var children = _edges[currentNode].Except(processedNodes);
+
+                int outputIndexUsed;
+
+                if (children.Any())
+                {
+                    int c1 = children.ElementAt(0);
+                    int c2 = children.ElementAt(1);
+
+                    result[internalIndex] = () =>
+                    {
+                        return $"I {graphNodeToSerializeNode[c1]} {graphNodeToSerializeNode[c2]}";
+                    };
+                    outputIndexUsed = internalIndex;
+                    internalIndex++;
+
+                    foreach (var child in children)
+                    {
+                        pendingNodes.SafeEnqueue(child);
+                    }
+                }
+                else
+                {
+                    result[leafIndex] = () => $"L {_nodeToClauseIndex[currentNode]}";
+                    outputIndexUsed = leafIndex;
+                    leafIndex++;
+                }
+
+                // register the node to processed nodes
+                processedNodes.Add(currentNode);
+                graphNodeToSerializeNode.Add(currentNode, outputIndexUsed - 1);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Convert internal data structures into a dtree file recognizable by C2D.
+        /// It's designed with this signature to defer evaluation in an effort to avoid 
+        /// inverted dependency between creation of serialized node and reference to serialized node.
+        /// </summary>
+        /// <returns>a sequence of lambdas that return each line of the desired output file</returns>
+        public Func<string>[] SerializeAsDtree()
+        {
+            return _cleanBuild ? SerializeCleanDtree() : SerializeDirtyDtree();
         }
 
         /// <summary>
