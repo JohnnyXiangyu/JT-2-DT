@@ -15,7 +15,8 @@ namespace JT_2_DT
 
         private readonly bool _cleanBuild;
         List<HashSet<int>>? _mostInclusiveFamilies;
-        Dictionary<int, List<IEnumerable<int>>>? _familyToSubsumedOnes;
+        List<int>? _familyToClauseIndices;
+        Dictionary<int, List<int>>? _familyToSubsumedOnes;
 
         public Dtree(string filePath, IEnumerable<IEnumerable<int>> families, bool useCleanCompiler = false)
         {
@@ -24,7 +25,7 @@ namespace JT_2_DT
             _cleanBuild = useCleanCompiler;
             if (useCleanCompiler)
             {
-                MakeDtree(families);
+                MakeDirtyDtree(families);
             }
             else
             {
@@ -175,7 +176,7 @@ namespace JT_2_DT
         /// Convert the tree decomposition graph into a dtree, with the given families.
         /// </summary>
         /// <param name="families"></param>
-        private void MakeDtree(IEnumerable<IEnumerable<int>> families)
+        private void MakeDirtyDtree(IEnumerable<IEnumerable<int>> families)
         {
             HashSet<int> oldLeaves = new(Leaves);
 
@@ -217,8 +218,10 @@ namespace JT_2_DT
 
             _mostInclusiveFamilies = new();
             _familyToSubsumedOnes = new();
-            
-            // clean up families
+            _familyToClauseIndices = new();
+
+            // create a clean list of families
+            int currentClauseCount = 0;
             foreach (var fam in families)
             {
                 bool included = false;
@@ -226,14 +229,15 @@ namespace JT_2_DT
                 {
                     if (_mostInclusiveFamilies[i].IsSupersetOf(fam))
                     {
-                        _familyToSubsumedOnes[i].Add(fam);
+                        _familyToSubsumedOnes[i].Add(currentClauseCount);
                         included = true;
                         break;
                     }
                     else if (_mostInclusiveFamilies[i].IsSubsetOf(fam))
                     {
-                        _familyToSubsumedOnes[i].Add(_mostInclusiveFamilies[i]);
+                        _familyToSubsumedOnes[i].Add(_familyToClauseIndices[i]);
                         _mostInclusiveFamilies[i] = new(fam);
+                        _familyToClauseIndices[i] = currentClauseCount;
                         included = true;
                         break;
                     }
@@ -243,9 +247,13 @@ namespace JT_2_DT
                 {
                     _mostInclusiveFamilies.Add(new(fam));
                     _familyToSubsumedOnes[_mostInclusiveFamilies.Count - 1] = new();
+                    _familyToClauseIndices.Add(currentClauseCount);
                 }
+
+                currentClauseCount++;
             }
 
+            // make room for families after purge
             foreach (var fam in _mostInclusiveFamilies)
             {
                 _clusterMapping.Add(fam);
@@ -259,7 +267,7 @@ namespace JT_2_DT
                 // fam := the family created from this clause (reduced to a hashset)
                 int newNodeIndex = _nodeCount + index;
                 InsertFamily(fam, newNodeIndex);
-                _nodeToClauseIndex[newNodeIndex] = index;
+                _nodeToClauseIndex[newNodeIndex] = _familyToClauseIndices[index];
             }));
             Task.WaitAll(tasks.ToArray());
 
