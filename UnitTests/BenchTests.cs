@@ -29,11 +29,11 @@ public class BenchTests
         Dtree dtree = new(tempTdFilename, formula.Clauses);
         foreach (var line in dtree.SerializeAsDtree())
         {
-            Console.WriteLine(line());
+            Trace.WriteLine(line());
         }
 
         // report time
-        Console.WriteLine($"{timer.Elapsed.TotalSeconds} seconds");
+        Trace.WriteLine($"{timer.Elapsed.TotalSeconds} seconds");
 
         // finally release the temp files
         File.Delete(tempTdFilename);
@@ -50,7 +50,7 @@ public class BenchTests
         {
             Stopwatch timer = Stopwatch.StartNew();
 
-            Console.WriteLine(file);
+            Trace.WriteLine(file);
 
             Cnf formula = new(Path.Combine("Examples", file));
             MoralGraph graph = new(formula);
@@ -58,7 +58,7 @@ public class BenchTests
             string tempGrFilename = Path.GetTempFileName();
             graph.OutputToFile(tempGrFilename);
 
-            Console.WriteLine($"{timer.Elapsed.TotalSeconds} moralization done");
+            Trace.WriteLine($"{timer.Elapsed.TotalSeconds} moralization done");
 
             // compute the tree decomposition
             string tempTdFilename = Path.GetTempFileName();
@@ -68,13 +68,13 @@ public class BenchTests
             twSolver.Start();
             twSolver.WaitForExit();
 
-            Console.WriteLine($"{timer.Elapsed.TotalSeconds} solver exit");
+            Trace.WriteLine($"{timer.Elapsed.TotalSeconds} solver exit");
 
             // compute the dtree
             Dtree dtree = new(tempTdFilename, formula.Clauses);
 
             // report time
-            Console.WriteLine($"{timer.Elapsed.TotalSeconds} dtree created (excluding serialization)");
+            Trace.WriteLine($"{timer.Elapsed.TotalSeconds} dtree created (excluding serialization)");
 
             // finally release the temp files
             File.Delete(tempTdFilename);
@@ -92,7 +92,7 @@ public class BenchTests
         {
             Stopwatch timer = Stopwatch.StartNew();
 
-            Console.WriteLine(file);
+            Trace.WriteLine(file);
 
             Cnf formula = new(Path.Combine("Examples", file));
             MoralGraph graph = new(formula);
@@ -100,7 +100,7 @@ public class BenchTests
             string tempGrFilename = Path.GetTempFileName();
             graph.OutputToFile(tempGrFilename);
 
-            Console.WriteLine($"{timer.Elapsed.TotalSeconds} moralization done");
+            Trace.WriteLine($"{timer.Elapsed.TotalSeconds} moralization done");
 
             // compute the tree decomposition
             string tempTdFilename = Path.GetTempFileName();
@@ -110,13 +110,13 @@ public class BenchTests
             twSolver.Start();
             twSolver.WaitForExit();
 
-            Console.WriteLine($"{timer.Elapsed.TotalSeconds} solver exit");
+            Trace.WriteLine($"{timer.Elapsed.TotalSeconds} solver exit");
 
             // compute the dtree
             Dtree dtree = new(tempTdFilename, formula.Clauses);
 
             // report time
-            Console.WriteLine($"{timer.Elapsed.TotalSeconds} dtree created (excluding serialization)");
+            Trace.WriteLine($"{timer.Elapsed.TotalSeconds} dtree created (excluding serialization)");
 
             // finally release the temp files
             File.Delete(tempTdFilename);
