@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace JT_2_DT
+﻿namespace JT_2_DT
 {
     internal class Cnf
     {
@@ -15,6 +8,8 @@ namespace JT_2_DT
         public Cnf(string filePath)
         {
             string[] lines = File.ReadAllLines(filePath);
+
+            Clauses = new(); // fail safe
 
             foreach (var line in lines)
             {
@@ -33,12 +28,16 @@ namespace JT_2_DT
                         break;
                     default:
                         {
+                            // register a clause
                             List<int> newClause = new(words.Length);
-                            foreach (string i in words)
+                            foreach (string word in words)
                             {
-                                if (i[0] != '0')
+                                if (word[0] != '0')
                                 {
-                                    newClause.Add(Math.Abs(int.Parse(i)) - 1);
+                                    // use 1-base variable notation, but still convert them to abs
+                                    // since we don't care about the original clause as long as we
+                                    // have a valid mapping
+                                    newClause.Add(Math.Abs(int.Parse(word))); 
                                 }
                             }
 

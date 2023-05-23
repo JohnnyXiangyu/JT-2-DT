@@ -9,7 +9,7 @@ namespace JT_2_DT
 
         private List<HashSet<int>> _edges = new();
         private List<HashSet<int>> _clusterMapping = new();
-        private readonly ConcurrentDictionary<int, int> _clauseMapping = new();
+        private readonly ConcurrentDictionary<int, int> _nodeToClauseIndex = new();
         private int _nodeCount;
         private int _rootByConvention;
 
@@ -19,13 +19,14 @@ namespace JT_2_DT
             MakeDtree(families);
         }
 
+        /// <summary>
+        /// Deserialize a tree decomposition file, the output of a tree decomposition compiler.
+        /// </summary>
+        /// <param name="filePath">path to the file</param>
+        /// <exception cref="FileLoadException"></exception>
         private void LoadTreeDecompFile(string filePath)
         {
-            var lines = File.ReadAllLines(filePath);
-            if (lines == null)
-            {
-                throw new FileLoadException();
-            }
+            var lines = File.ReadAllLines(filePath) ?? throw new FileLoadException();
 
             foreach (var line in lines)
             {
@@ -35,7 +36,6 @@ namespace JT_2_DT
                         {
                             var words = line.Split(' ');
                             int bagCount = int.Parse(words[2]);
-                            // int width = int.Parse(words[3]) - 1;
 
                             _nodeCount = bagCount;
                             _edges = new(bagCount);
@@ -58,7 +58,8 @@ namespace JT_2_DT
 
                             for (int i = 2; i < words.Length; i++)
                             {
-                                _clusterMapping[clusterIndex].Add(int.Parse(words[i]) - 1);
+                                // variables start with 1
+                                _clusterMapping[clusterIndex].Add(int.Parse(words[i])); 
                             }
 
                             break;
@@ -79,7 +80,11 @@ namespace JT_2_DT
 
         }
 
-        // thread safe
+        /// <summary>
+        /// Add an bi-directional edge.
+        /// </summary>
+        /// <param name="v1">a node</param>
+        /// <param name="v2">another node</param>
         private void AddEdge(int v1, int v2)
         {
             lock (_edges[v1])
@@ -97,7 +102,11 @@ namespace JT_2_DT
             LeafCheck(v2);
         }
 
-        // thread safe
+        /// <summary>
+        /// Fully delete a node and from the graph.
+        /// </summary>
+        /// <param name="node">the node to delete</param>
+        /// <returns>new leaves created by removing this node</returns>
         private HashSet<int> BanishNode(int node)
         {
             HashSet<int> targets;
@@ -130,7 +139,10 @@ namespace JT_2_DT
             return newLeaves;
         }
 
-        // thread safe
+        /// <summary>
+        /// Delete all leaf nodes in a range.
+        /// </summary>
+        /// <param name="range">a set (hashset) of nodes</param>
         private void PurgeLeavesInRange(HashSet<int> range)
         {
             Stack<int> stack = new(range.Intersect(Leaves));
@@ -146,9 +158,12 @@ namespace JT_2_DT
             }
         }
 
+        /// <summary>
+        /// Convert the tree decomposition graph into a dtree, with the given families.
+        /// </summary>
+        /// <param name="families"></param>
         private void MakeDtree(IEnumerable<IEnumerable<int>> families)
         {
-            // extend current infrastructure
             HashSet<int> oldLeaves = new(Leaves);
 
             foreach (var fam in families)
@@ -160,9 +175,11 @@ namespace JT_2_DT
             // insert the families into the tree
             var tasks = families.Select((fam, index) => Task.Run(() =>
             {
-                int newNodeIndexHere = _nodeCount + index;
-                InsertFamily(fam, newNodeIndexHere);
-                _clauseMapping[newNodeIndexHere] = index;
+                // index := index of clause
+                // fam := the family created from this clause (reduced to a hashset)
+                int newNodeIndex = _nodeCount + index;
+                InsertFamily(fam, newNodeIndex);
+                _nodeToClauseIndex[newNodeIndex] = index;
             }));
             Task.WaitAll(tasks.ToArray());
 
@@ -176,6 +193,11 @@ namespace JT_2_DT
             _rootByConvention = ResolveAsBinaryTree();
         }
 
+        /// <summary>
+        /// Insert a new node that originates from a family from the source CNF.
+        /// </summary>
+        /// <param name="family">a set of variables</param>
+        /// <param name="newIndex">the node to which this family is inserted</param>
         private void InsertFamily(IEnumerable<int> family, int newIndex)
         {
             for (int i = 0; i < _nodeCount; i++)
@@ -188,6 +210,10 @@ namespace JT_2_DT
             }
         }
 
+        /// <summary>
+        /// The rooting and reduction step combined into 1.
+        /// </summary>
+        /// <returns>a root by convention (tree decomposition is a undirected graph)</returns>
         private int ResolveAsBinaryTree()
         {
             // we know leaves will not change during any time when this is called
@@ -262,6 +288,13 @@ namespace JT_2_DT
             return conventionalRoot;
         }
 
+        /// <summary>
+        /// "Extend" the target node to reduce its child-count to 2.
+        /// This process creates an intermediate node.
+        /// </summary>
+        /// <param name="target">the original parent of all the provided children</param>
+        /// <param name="children">children of this node</param>
+        /// <returns>the created intermediate node's index</returns>
         private int ExtendNode(int target, IEnumerable<int> children)
         {
             bool first = true;
@@ -293,6 +326,11 @@ namespace JT_2_DT
             return newIntermediate;
         }
 
+        /// <summary>
+        /// Add a new jtree node that has the same bag as the target jtree node.
+        /// </summary>
+        /// <param name="target">a jtree node</param>
+        /// <returns>the created node</returns>
         private int DuplicateBag(int target)
         {
             int newIntermediate = _edges.Count;
@@ -303,6 +341,12 @@ namespace JT_2_DT
             return newIntermediate;
         }
 
+        /// <summary>
+        /// Convert internal data structures into a dtree file recognizable by C2D.
+        /// It's designed with this signature to defer evaluation in an effort to avoid 
+        /// inverted dependency between creation of serialized node and reference to serialized node.
+        /// </summary>
+        /// <returns>a sequence of lambdas that return each line of the desired output file</returns>
         public Func<string>[] SerializeAsDtree()
         {
             // start with the conventional root, run a top-down bfs
@@ -344,7 +388,7 @@ namespace JT_2_DT
                 }
                 else
                 {
-                    result[leafIndex] = () => $"L {_clauseMapping[currentNode]}";
+                    result[leafIndex] = () => $"L {_nodeToClauseIndex[currentNode]}";
                     outputIndexUsed = leafIndex;
                     leafIndex++;
                 }
@@ -357,6 +401,11 @@ namespace JT_2_DT
             return result;
         }
 
+        /// <summary>
+        /// Verify if the given node is a leaf or not.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         private bool LeafCheck(int node)
         {
             lock (Leaves)
@@ -374,6 +423,10 @@ namespace JT_2_DT
             }
         }
 
+        /// <summary>
+        /// Extend entries into the adjacency list.
+        /// </summary>
+        /// <param name="count"></param>
         private void ExtendNode(int count)
         {
             for (int i = 0; i < count; i++)
