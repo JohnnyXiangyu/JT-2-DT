@@ -13,10 +13,18 @@ namespace JT_2_DT
         private int _nodeCount;
         private int _rootByConvention;
 
-        public Dtree(string filePath, IEnumerable<IEnumerable<int>> families)
+        public Dtree(string filePath, IEnumerable<IEnumerable<int>> families, bool useCleanCompiler = false)
         {
             LoadTreeDecompFile(filePath);
-            MakeDtree(families);
+
+            if (useCleanCompiler)
+            {
+                MakeDtree(families);
+            }
+            else
+            {
+                MakeCleanDtree(families);
+            }
         }
 
         /// <summary>
@@ -191,6 +199,16 @@ namespace JT_2_DT
 
             // last step is to resolve the tree to ensure it's a full binary tree
             _rootByConvention = ResolveAsBinaryTree();
+        }
+
+        /// <summary>
+        /// Convert the loaded tree decomposition to dtree, but remove all subsumed families.
+        /// Removed families are added back during serialziation.
+        /// </summary>
+        /// <param name="families">families from CNF, including all subsumed</param>
+        private void MakeCleanDtree(IEnumerable<IEnumerable<int>> families)
+        {
+
         }
 
         /// <summary>
