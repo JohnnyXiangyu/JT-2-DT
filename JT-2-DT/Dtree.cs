@@ -509,7 +509,7 @@ namespace JT_2_DT
                     int aggregatedNodeSerialized = graphNodeToSerializeNode[node];
                     for (int i = 1; i <= subsumedClauses.Count; i++)
                     {
-                        int subsumedNodeSerialized = subsumingClause + i;
+                        int subsumedNodeSerialized = graphNodeToSerializeNode[node] + i;
                         int newAggregate = result.Count - 1;
                         AddToResult($"I {aggregatedNodeSerialized} {subsumedNodeSerialized}");
                         aggregatedNodeSerialized = newAggregate;
