@@ -112,8 +112,8 @@ namespace JT_2_DT
                 _edges[v2].Add(v1);
             }
 
-            LeafCheck(v1);
-            LeafCheck(v2);
+            GlobalLeafCheck(v1);
+            GlobalLeafCheck(v2);
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace JT_2_DT
                     _edges[v2].Remove(node);
                 }
 
-                if (LeafCheck(v2))
+                if (GlobalLeafCheck(v2))
                 {
                     newLeaves.Add(v2);
                 }
@@ -429,168 +429,6 @@ namespace JT_2_DT
             return newIntermediate;
         }
 
-        private IEnumerable<string> SerializeDirtyDtree()
-        {
-            // start with bottom-up traversal states
-            UniqueQueue<int> pendingNodes = new();
-            HashSet<int> processedNodes = new();
-            Dictionary<int, int> graphNodeToSerializeNode = new();
-
-            // initialize the result list
-            List<string> result = new()
-            {
-                string.Empty
-            };
-
-            void AddToResult(string newLine) => result.Add(newLine);
-
-            // first, lay out all leaves
-            foreach (var node in Leaves)
-            {
-                graphNodeToSerializeNode[node] = result.Count - 1;
-                processedNodes.Add(node);
-
-                // find potential parents
-                foreach (int neighbour in _edges[node])
-                {
-                    if (CheckLeafCondition(neighbour, processedNodes))
-                    {
-                        pendingNodes.SafeEnqueue(neighbour);
-                    }
-                }
-
-                int clause = _nodeToClause[node];
-                AddToResult($"L {clause}");
-            }
-
-            // finally, process all other intermediate nodes
-            while (pendingNodes.Any())
-            {
-                int currentNode = pendingNodes.SafeDequeue();
-                processedNodes.Add(currentNode);
-
-                // update mapping
-                graphNodeToSerializeNode[currentNode] = result.Count - 1;
-
-                // its intermediate node line
-                var children = _edges[currentNode].Intersect(processedNodes);
-                AddToResult($"I {graphNodeToSerializeNode[children.First()]} {graphNodeToSerializeNode[children.ElementAt(1)]}");
-
-                // add parent
-                foreach (int neighbour in _edges[currentNode])
-                {
-                    if (CheckLeafCondition(neighbour, processedNodes))
-                    {
-                        pendingNodes.SafeEnqueue(neighbour);
-                    }
-                }
-            }
-
-            result[0] = $"dtree {result.Count - 1}";
-            return result.ToArray();
-        }
-
-        private IEnumerable<string> SerializeCleanDtree()
-        {
-            // start with bottom-up traversal states
-            UniqueQueue<int> pendingNodes = new();
-            HashSet<int> processedNodes = new();
-            Dictionary<int, int> graphNodeToSerializeNode = new();
-            HashSet<int> subsumingNodes = new();
-
-            // initialize the result list
-            List<string> result = new()
-            {
-                string.Empty
-            };
-
-            void AddToResult(string newLine) => result.Add(newLine);
-
-            // first, lay out all leaves
-            foreach (var node in Leaves)
-            {
-                graphNodeToSerializeNode[node] = result.Count - 1;
-                processedNodes.Add(node);
-
-                // find potential parents
-                foreach (int neighbour in _edges[node])
-                {
-                    if (CheckLeafCondition(neighbour, processedNodes))
-                    {
-                        pendingNodes.SafeEnqueue(neighbour);
-                    }
-                }
-
-                int clause = _nodeToClause[node];
-                if (!_clauseToSubsumedClauses![clause].Any())
-                { // only write a single leaf
-                    AddToResult($"L {clause}");
-                }
-                else
-                { // write all leaves out in this small cluster
-                    AddToResult($"L {clause}");
-                    subsumingNodes.Add(node);
-                    foreach (int subsumedClause in _clauseToSubsumedClauses[clause])
-                    {
-                        AddToResult($"L {subsumedClause}");
-                    }
-                }
-            }
-
-            // second, process intermediate nodes that incorporate subsumed nodes
-            foreach (int node in subsumingNodes)
-            {
-                int subsumingClause = _nodeToClause[node];
-                List<int> subsumedClauses = _clauseToSubsumedClauses![subsumingClause];
-
-                int aggregatedNodeSerialized = graphNodeToSerializeNode[node];
-                for (int i = 1; i <= subsumedClauses.Count; i ++)
-                {
-                    int subsumedNodeSerialized = subsumingClause + i;
-                    int newAggregate = result.Count - 1;
-                    AddToResult($"I {aggregatedNodeSerialized} {subsumedNodeSerialized}");
-                    aggregatedNodeSerialized = newAggregate;
-                }
-
-                graphNodeToSerializeNode[node] = aggregatedNodeSerialized;
-            }
-
-            // finally, process all other intermediate nodes
-            while (pendingNodes.Any())
-            {
-                int currentNode = pendingNodes.SafeDequeue();
-                processedNodes.Add(currentNode);
-
-                // update mapping
-                graphNodeToSerializeNode[currentNode] = result.Count - 1;
-
-                // its intermediate node line
-                var children = _edges[currentNode].Intersect(processedNodes);
-                AddToResult($"I {graphNodeToSerializeNode[children.First()]} {graphNodeToSerializeNode[children.ElementAt(1)]}");
-
-                // add parent
-                foreach (int neighbour in _edges[currentNode])
-                {
-                    if (CheckLeafCondition(neighbour, processedNodes))
-                    {
-                        pendingNodes.SafeEnqueue(neighbour);
-                    }
-                }
-            }
-
-            result[0] = $"dtree {result.Count - 1}";
-            return result.ToArray();
-        }
-
-        private bool CheckLeafCondition(int node, HashSet<int> processedNodes)
-        {
-            var neighbours = _edges[node];
-            var unseenNeighbours = neighbours.Except(processedNodes);
-            if (node == _rootByConvention)
-                return !unseenNeighbours.Any();
-            return unseenNeighbours.Count() == 1;
-        }
-
         /// <summary>
         /// Convert internal data structures into a dtree file recognizable by C2D.
         /// It's designed with this signature to defer evaluation in an effort to avoid 
@@ -599,7 +437,106 @@ namespace JT_2_DT
         /// <returns>a sequence of lambdas that return each line of the desired output file</returns>
         public IEnumerable<string> SerializeAsDtree()
         {
-            return _cleanBuild ? SerializeCleanDtree() : SerializeDirtyDtree();
+            // start with bottom-up traversal states
+            UniqueQueue<int> pendingNodes = new();
+            HashSet<int> processedNodes = new();
+            Dictionary<int, int> graphNodeToSerializeNode = new();
+            
+            // only for clean build
+            HashSet<int> subsumingNodes = new();
+
+            // initialize the result list
+            List<string> result = new()
+            {
+                string.Empty
+            };
+
+            // helper functions
+            void AddToResult(string newLine) => result.Add(newLine);
+
+            bool LeafCheckByProgress(int node)
+            {
+                var neighbours = _edges[node];
+                var unseenNeighbours = neighbours.Except(processedNodes);
+                if (node == _rootByConvention)
+                    return !unseenNeighbours.Any();
+                return unseenNeighbours.Count() == 1;
+            }
+            
+            void TryPushParent(int node)
+            {
+                foreach (int neighbour in _edges[node])
+                {
+                    if (LeafCheckByProgress(neighbour))
+                    {
+                        pendingNodes.SafeEnqueue(neighbour);
+                    }
+                }
+            }
+
+            // first, lay out all leaves
+            foreach (var node in Leaves)
+            {
+                graphNodeToSerializeNode[node] = result.Count - 1;
+                processedNodes.Add(node);
+
+                // find potential parents
+                TryPushParent(node);
+
+                int clause = _nodeToClause[node];
+                AddToResult($"L {clause}");
+
+                // only for clean build: 
+                if (_cleanBuild && _clauseToSubsumedClauses![clause].Any())
+                { // write all subsumed leaves out in this small cluster
+                    subsumingNodes.Add(node);
+                    foreach (int subsumedClause in _clauseToSubsumedClauses[clause])
+                    {
+                        AddToResult($"L {subsumedClause}");
+                    }
+                }
+            }
+
+            // only for clean builds, process intermediate nodes that incorporate subsumed nodes
+            if (_cleanBuild)
+            {
+                foreach (int node in subsumingNodes)
+                {
+                    int subsumingClause = _nodeToClause[node];
+                    List<int> subsumedClauses = _clauseToSubsumedClauses![subsumingClause];
+
+                    int aggregatedNodeSerialized = graphNodeToSerializeNode[node];
+                    for (int i = 1; i <= subsumedClauses.Count; i++)
+                    {
+                        int subsumedNodeSerialized = subsumingClause + i;
+                        int newAggregate = result.Count - 1;
+                        AddToResult($"I {aggregatedNodeSerialized} {subsumedNodeSerialized}");
+                        aggregatedNodeSerialized = newAggregate;
+                    }
+
+                    graphNodeToSerializeNode[node] = aggregatedNodeSerialized;
+                }
+            }
+
+            // finally, process all other intermediate nodes
+            while (pendingNodes.Any())
+            {
+                int currentNode = pendingNodes.SafeDequeue();
+                processedNodes.Add(currentNode);
+
+                // update mapping
+                graphNodeToSerializeNode[currentNode] = result.Count - 1;
+
+                // its intermediate node line
+                var children = _edges[currentNode].Intersect(processedNodes);
+                AddToResult($"I {graphNodeToSerializeNode[children.First()]} {graphNodeToSerializeNode[children.ElementAt(1)]}");
+
+                // add parent
+                TryPushParent(currentNode);
+            }
+
+            result[0] = $"dtree {result.Count - 1}";
+            return result.ToArray();
         }
 
         /// <summary>
@@ -607,7 +544,7 @@ namespace JT_2_DT
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        private bool LeafCheck(int node)
+        private bool GlobalLeafCheck(int node)
         {
             lock (Leaves)
             {
