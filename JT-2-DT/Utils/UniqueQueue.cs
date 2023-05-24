@@ -4,6 +4,8 @@
     {
         readonly HashSet<T> _gate = new();
 
+        public UniqueQueue() : base() { }
+
         public UniqueQueue(IEnumerable<T> source) : base(source) { }
 
         public T SafeDequeue()

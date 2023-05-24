@@ -9,21 +9,21 @@ namespace JT_2_DT
 
         private List<HashSet<int>> _edges = new();
         private List<HashSet<int>> _clusterMapping = new();
-        private readonly ConcurrentDictionary<int, int> _nodeToClauseIndex = new();
+        private readonly ConcurrentDictionary<int, int> _nodeToClause = new();
         private int _nodeCount;
         private int _rootByConvention;
 
         private readonly bool _cleanBuild;
         List<HashSet<int>>? _mostInclusiveFamilies;
         List<int>? _familyToClauseIndices;
-        Dictionary<int, List<int>>? _familyToSubsumedOnes;
+        Dictionary<int, List<int>>? _clauseToSubsumedClauses;
 
         public Dtree(string filePath, IEnumerable<IEnumerable<int>> families, bool useCleanCompiler = false)
         {
             LoadTreeDecompFile(filePath);
             
             _cleanBuild = useCleanCompiler;
-            if (useCleanCompiler)
+            if (!useCleanCompiler)
             {
                 MakeDirtyDtree(families);
             }
@@ -193,7 +193,7 @@ namespace JT_2_DT
                 // fam := the family created from this clause (reduced to a hashset)
                 int newNodeIndex = _nodeCount + index;
                 InsertFamily(fam, newNodeIndex);
-                _nodeToClauseIndex[newNodeIndex] = index;
+                _nodeToClause[newNodeIndex] = index;
             }));
             Task.WaitAll(tasks.ToArray());
 
@@ -217,7 +217,7 @@ namespace JT_2_DT
             HashSet<int> oldLeaves = new(Leaves);
 
             _mostInclusiveFamilies = new();
-            _familyToSubsumedOnes = new();
+            _clauseToSubsumedClauses = new();
             _familyToClauseIndices = new();
 
             // create a clean list of families
@@ -229,13 +229,13 @@ namespace JT_2_DT
                 {
                     if (_mostInclusiveFamilies[i].IsSupersetOf(fam))
                     {
-                        _familyToSubsumedOnes[i].Add(currentClauseCount);
+                        _clauseToSubsumedClauses[i].Add(currentClauseCount);
                         included = true;
                         break;
                     }
                     else if (_mostInclusiveFamilies[i].IsSubsetOf(fam))
                     {
-                        _familyToSubsumedOnes[i].Add(_familyToClauseIndices[i]);
+                        _clauseToSubsumedClauses[i].Add(_familyToClauseIndices[i]);
                         _mostInclusiveFamilies[i] = new(fam);
                         _familyToClauseIndices[i] = currentClauseCount;
                         included = true;
@@ -246,7 +246,7 @@ namespace JT_2_DT
                 if (!included)
                 {
                     _mostInclusiveFamilies.Add(new(fam));
-                    _familyToSubsumedOnes[_mostInclusiveFamilies.Count - 1] = new();
+                    _clauseToSubsumedClauses[_mostInclusiveFamilies.Count - 1] = new();
                     _familyToClauseIndices.Add(currentClauseCount);
                 }
 
@@ -267,7 +267,7 @@ namespace JT_2_DT
                 // fam := the family created from this clause (reduced to a hashset)
                 int newNodeIndex = _nodeCount + index;
                 InsertFamily(fam, newNodeIndex);
-                _nodeToClauseIndex[newNodeIndex] = _familyToClauseIndices[index];
+                _nodeToClause[newNodeIndex] = _familyToClauseIndices[index];
             }));
             Task.WaitAll(tasks.ToArray());
 
@@ -470,7 +470,7 @@ namespace JT_2_DT
                 }
                 else
                 {
-                    result[leafIndex] = () => $"L {_nodeToClauseIndex[currentNode]}";
+                    result[leafIndex] = () => $"L {_nodeToClause[currentNode]}";
                     outputIndexUsed = leafIndex;
                     leafIndex++;
                 }
@@ -485,59 +485,101 @@ namespace JT_2_DT
 
         private Func<string>[] SerializeCleanDtree()
         {
-            // start with the conventional root, run a top-down bfs
-            UniqueQueue<int> pendingNodes = new(new int[] { _rootByConvention });
+            // start with bottom-up traversal states
+            UniqueQueue<int> pendingNodes = new();
             HashSet<int> processedNodes = new();
             Dictionary<int, int> graphNodeToSerializeNode = new();
+            HashSet<int> subsumingNodes = new();
 
-            // initialize the result array statically
-            Func<string>[] result = new Func<string>[2 * Leaves.Count];
-            result[0] = () => $"dtree {2 * Leaves.Count - 1}";
+            // initialize the result list
+            List<Func<string>> result = new();
+            result.Add(() => $"dtree {result.Count - 1}");
 
-            // extra step: layout all leaves and intermediate nodes before other nodes
+            void AddToResult(string newLine) => result.Add(() => newLine);
 
+            // first, lay out all leaves
+            foreach (var node in Leaves)
+            {
+                graphNodeToSerializeNode[node] = result.Count - 1;
+                processedNodes.Add(node);
 
-            // partition the array into 2 segments
-            int leafIndex = 1;
-            int internalIndex = leafIndex + Leaves.Count;
+                // find potential parents
+                foreach (int neighbour in _edges[node])
+                {
+                    if (CheckLeafCondition(neighbour, processedNodes))
+                    {
+                        pendingNodes.SafeEnqueue(neighbour);
+                    }
+                }
 
+                int clause = _nodeToClause[node];
+                if (!_clauseToSubsumedClauses![clause].Any())
+                { // only write a single leaf
+                    AddToResult($"L {clause}");
+                }
+                else
+                { // write all leaves out in this small cluster
+                    AddToResult($"L {clause}");
+                    subsumingNodes.Add(node);
+                    foreach (int subsumedClause in _clauseToSubsumedClauses[clause])
+                    {
+                        AddToResult($"L {subsumedClause}");
+                    }
+                }
+            }
+
+            // second, process intermediate nodes that incorporate subsumed nodes
+            foreach (int node in subsumingNodes)
+            {
+                int subsumingClause = _nodeToClause[node];
+                int subsumingNodeSerialized = graphNodeToSerializeNode[node];
+                List<int> subsumedClauses = _clauseToSubsumedClauses![subsumingClause];
+
+                int aggregatedNodeSerialized = graphNodeToSerializeNode[node];
+                for (int i = 1; i <= subsumedClauses.Count; i ++)
+                {
+                    int subsumedNodeSerialized = subsumingClause + i;
+                    int newAggregate = result.Count - 1;
+                    AddToResult($"I {aggregatedNodeSerialized} {subsumedNodeSerialized}");
+                    aggregatedNodeSerialized = newAggregate;
+                }
+
+                graphNodeToSerializeNode[node] = aggregatedNodeSerialized;
+            }
+
+            // finally, process all other intermediate nodes
             while (pendingNodes.Any())
             {
                 int currentNode = pendingNodes.SafeDequeue();
-                var children = _edges[currentNode].Except(processedNodes);
+                processedNodes.Add(currentNode);
 
-                int outputIndexUsed;
+                // update mapping
+                graphNodeToSerializeNode[currentNode] = result.Count - 1;
 
-                if (children.Any())
+                // its intermediate node line
+                var children = _edges[currentNode].Intersect(processedNodes);
+                AddToResult($"I {graphNodeToSerializeNode[children.First()]} {graphNodeToSerializeNode[children.ElementAt(1)]}");
+
+                // add parent
+                foreach (int neighbour in _edges[currentNode])
                 {
-                    int c1 = children.ElementAt(0);
-                    int c2 = children.ElementAt(1);
-
-                    result[internalIndex] = () =>
+                    if (CheckLeafCondition(neighbour, processedNodes))
                     {
-                        return $"I {graphNodeToSerializeNode[c1]} {graphNodeToSerializeNode[c2]}";
-                    };
-                    outputIndexUsed = internalIndex;
-                    internalIndex++;
-
-                    foreach (var child in children)
-                    {
-                        pendingNodes.SafeEnqueue(child);
+                        pendingNodes.SafeEnqueue(neighbour);
                     }
                 }
-                else
-                {
-                    result[leafIndex] = () => $"L {_nodeToClauseIndex[currentNode]}";
-                    outputIndexUsed = leafIndex;
-                    leafIndex++;
-                }
-
-                // register the node to processed nodes
-                processedNodes.Add(currentNode);
-                graphNodeToSerializeNode.Add(currentNode, outputIndexUsed - 1);
             }
 
-            return result;
+            return result.ToArray();
+        }
+
+        private bool CheckLeafCondition(int node, HashSet<int> processedNodes)
+        {
+            var neighbours = _edges[node];
+            var unseenNeighbours = neighbours.Except(processedNodes);
+            if (node == _rootByConvention)
+                return unseenNeighbours.Count() == 0;
+            return unseenNeighbours.Count() == 1;
         }
 
         /// <summary>
