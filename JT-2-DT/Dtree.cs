@@ -494,6 +494,9 @@ namespace JT_2_DT
             Func<string>[] result = new Func<string>[2 * Leaves.Count];
             result[0] = () => $"dtree {2 * Leaves.Count - 1}";
 
+            // extra step: layout all leaves and intermediate nodes before other nodes
+
+
             // partition the array into 2 segments
             int leafIndex = 1;
             int internalIndex = leafIndex + Leaves.Count;
