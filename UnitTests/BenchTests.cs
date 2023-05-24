@@ -9,8 +9,6 @@ public class BenchTests
     [TestMethod]
     public void MiniBenchDirty()
     {
-        Stopwatch timer = Stopwatch.StartNew();
-
         Cnf formula = new(Path.Combine("Examples", "short_cnf"));
         MoralGraph graph = new(formula);
 
@@ -29,11 +27,8 @@ public class BenchTests
         Dtree dtree = new(tempTdFilename, formula.Clauses);
         foreach (var line in dtree.SerializeAsDtree())
         {
-            Console.WriteLine(line());
+            Console.WriteLine(line);
         }
-
-        // report time
-        Console.WriteLine($"{timer.Elapsed.TotalSeconds} seconds");
 
         // finally release the temp files
         File.Delete(tempTdFilename);
@@ -43,8 +38,6 @@ public class BenchTests
     [TestMethod]
     public void MiniBenchClean()
     {
-        Stopwatch timer = Stopwatch.StartNew();
-
         Cnf formula = new(Path.Combine("Examples", "short_cnf"));
         MoralGraph graph = new(formula);
 
@@ -63,11 +56,8 @@ public class BenchTests
         Dtree dtree = new(tempTdFilename, formula.Clauses, true);
         foreach (var line in dtree.SerializeAsDtree())
         {
-            Console.WriteLine(line());
+            Console.WriteLine(line);
         }
-
-        // report time
-        Console.WriteLine($"{timer.Elapsed.TotalSeconds} seconds");
 
         // finally release the temp files
         File.Delete(tempTdFilename);
@@ -77,8 +67,6 @@ public class BenchTests
     [TestMethod]
     public void StandardBenchDirty()
     {
-        Stopwatch timer = Stopwatch.StartNew();
-
         Cnf formula = new(Path.Combine("Examples", "sat-grid-pbl-0010.cnf"));
         MoralGraph graph = new(formula);
 
@@ -97,11 +85,8 @@ public class BenchTests
         Dtree dtree = new(tempTdFilename, formula.Clauses);
         foreach (var line in dtree.SerializeAsDtree())
         {
-            Console.WriteLine(line());
+            Console.WriteLine(line);
         }
-
-        // report time
-        Console.WriteLine($"{timer.Elapsed.TotalSeconds} seconds");
 
         // finally release the temp files
         File.Delete(tempTdFilename);
@@ -111,8 +96,6 @@ public class BenchTests
     [TestMethod]
     public void StandardBenchClean()
     {
-        Stopwatch timer = Stopwatch.StartNew();
-
         Cnf formula = new(Path.Combine("Examples", "sat-grid-pbl-0010.cnf"));
         MoralGraph graph = new(formula);
 
@@ -131,11 +114,8 @@ public class BenchTests
         Dtree dtree = new(tempTdFilename, formula.Clauses, true);
         foreach (var line in dtree.SerializeAsDtree())
         {
-            Console.WriteLine(line());
+            Console.WriteLine(line);
         }
-
-        // report time
-        Console.WriteLine($"{timer.Elapsed.TotalSeconds} seconds");
 
         // finally release the temp files
         File.Delete(tempTdFilename);
@@ -175,9 +155,6 @@ public class BenchTests
             // compute the dtree
             Dtree dtree = new(tempTdFilename, formula.Clauses);
 
-            // report time
-            Console.WriteLine($"{timer.Elapsed.TotalSeconds} dtree created (excluding serialization)");
-
             // finally release the temp files
             File.Delete(tempTdFilename);
             File.Delete(tempTdFilename);
@@ -216,9 +193,6 @@ public class BenchTests
 
             // compute the dtree
             Dtree dtree = new(tempTdFilename, formula.Clauses);
-
-            // report time
-            Console.WriteLine($"{timer.Elapsed.TotalSeconds} dtree created (excluding serialization)");
 
             // finally release the temp files
             File.Delete(tempTdFilename);

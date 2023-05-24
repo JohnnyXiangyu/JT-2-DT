@@ -23,7 +23,7 @@ twSolver.WaitForExit();
 Dtree dtree = new(tempTdFilename, formula.Clauses);
 foreach (var line in dtree.SerializeAsDtree())
 {
-    Trace.WriteLine(line());
+    Trace.WriteLine(line);
 }
 
 // report time

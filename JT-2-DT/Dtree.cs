@@ -429,61 +429,68 @@ namespace JT_2_DT
             return newIntermediate;
         }
 
-        private Func<string>[] SerializeDirtyDtree()
+        private IEnumerable<string> SerializeDirtyDtree()
         {
-            // start with the conventional root, run a top-down bfs
-            UniqueQueue<int> pendingNodes = new(new int[] { _rootByConvention });
+            // start with bottom-up traversal states
+            UniqueQueue<int> pendingNodes = new();
             HashSet<int> processedNodes = new();
             Dictionary<int, int> graphNodeToSerializeNode = new();
 
-            // initialize the result array statically
-            Func<string>[] result = new Func<string>[2 * Leaves.Count];
-            result[0] = () => $"dtree {2 * Leaves.Count - 1}";
+            // initialize the result list
+            List<string> result = new()
+            {
+                string.Empty
+            };
 
-            // partition the array into 2 segments
-            int leafIndex = 1;
-            int internalIndex = leafIndex + Leaves.Count;
+            void AddToResult(string newLine) => result.Add(newLine);
 
+            // first, lay out all leaves
+            foreach (var node in Leaves)
+            {
+                graphNodeToSerializeNode[node] = result.Count - 1;
+                processedNodes.Add(node);
+
+                // find potential parents
+                foreach (int neighbour in _edges[node])
+                {
+                    if (CheckLeafCondition(neighbour, processedNodes))
+                    {
+                        pendingNodes.SafeEnqueue(neighbour);
+                    }
+                }
+
+                int clause = _nodeToClause[node];
+                AddToResult($"L {clause}");
+            }
+
+            // finally, process all other intermediate nodes
             while (pendingNodes.Any())
             {
                 int currentNode = pendingNodes.SafeDequeue();
-                var children = _edges[currentNode].Except(processedNodes);
+                processedNodes.Add(currentNode);
 
-                int outputIndexUsed;
+                // update mapping
+                graphNodeToSerializeNode[currentNode] = result.Count - 1;
 
-                if (children.Any())
+                // its intermediate node line
+                var children = _edges[currentNode].Intersect(processedNodes);
+                AddToResult($"I {graphNodeToSerializeNode[children.First()]} {graphNodeToSerializeNode[children.ElementAt(1)]}");
+
+                // add parent
+                foreach (int neighbour in _edges[currentNode])
                 {
-                    int c1 = children.ElementAt(0);
-                    int c2 = children.ElementAt(1);
-
-                    result[internalIndex] = () =>
+                    if (CheckLeafCondition(neighbour, processedNodes))
                     {
-                        return $"I {graphNodeToSerializeNode[c1]} {graphNodeToSerializeNode[c2]}";
-                    };
-                    outputIndexUsed = internalIndex;
-                    internalIndex++;
-
-                    foreach (var child in children)
-                    {
-                        pendingNodes.SafeEnqueue(child);
+                        pendingNodes.SafeEnqueue(neighbour);
                     }
                 }
-                else
-                {
-                    result[leafIndex] = () => $"L {_nodeToClause[currentNode]}";
-                    outputIndexUsed = leafIndex;
-                    leafIndex++;
-                }
-
-                // register the node to processed nodes
-                processedNodes.Add(currentNode);
-                graphNodeToSerializeNode.Add(currentNode, outputIndexUsed - 1);
             }
 
-            return result;
+            result[0] = $"dtree {result.Count - 1}";
+            return result.ToArray();
         }
 
-        private Func<string>[] SerializeCleanDtree()
+        private IEnumerable<string> SerializeCleanDtree()
         {
             // start with bottom-up traversal states
             UniqueQueue<int> pendingNodes = new();
@@ -492,10 +499,12 @@ namespace JT_2_DT
             HashSet<int> subsumingNodes = new();
 
             // initialize the result list
-            List<Func<string>> result = new();
-            result.Add(() => $"dtree {result.Count - 1}");
+            List<string> result = new()
+            {
+                string.Empty
+            };
 
-            void AddToResult(string newLine) => result.Add(() => newLine);
+            void AddToResult(string newLine) => result.Add(newLine);
 
             // first, lay out all leaves
             foreach (var node in Leaves)
@@ -532,7 +541,6 @@ namespace JT_2_DT
             foreach (int node in subsumingNodes)
             {
                 int subsumingClause = _nodeToClause[node];
-                int subsumingNodeSerialized = graphNodeToSerializeNode[node];
                 List<int> subsumedClauses = _clauseToSubsumedClauses![subsumingClause];
 
                 int aggregatedNodeSerialized = graphNodeToSerializeNode[node];
@@ -570,6 +578,7 @@ namespace JT_2_DT
                 }
             }
 
+            result[0] = $"dtree {result.Count - 1}";
             return result.ToArray();
         }
 
@@ -578,7 +587,7 @@ namespace JT_2_DT
             var neighbours = _edges[node];
             var unseenNeighbours = neighbours.Except(processedNodes);
             if (node == _rootByConvention)
-                return unseenNeighbours.Count() == 0;
+                return !unseenNeighbours.Any();
             return unseenNeighbours.Count() == 1;
         }
 
@@ -588,7 +597,7 @@ namespace JT_2_DT
         /// inverted dependency between creation of serialized node and reference to serialized node.
         /// </summary>
         /// <returns>a sequence of lambdas that return each line of the desired output file</returns>
-        public Func<string>[] SerializeAsDtree()
+        public IEnumerable<string> SerializeAsDtree()
         {
             return _cleanBuild ? SerializeCleanDtree() : SerializeDirtyDtree();
         }

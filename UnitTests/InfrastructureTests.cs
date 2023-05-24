@@ -11,7 +11,7 @@ public class InfrastructureTests
         Dtree dtree = new(Path.Combine("Examples", "short_jtree.txt"), new List<List<int>> { new() { 0, 1 }, new() { 2, 3 }, new() { 3, 4 } });
         foreach (var line in dtree.SerializeAsDtree())
         {
-            Console.WriteLine(line());
+            Console.WriteLine(line);
         }
     }
 
@@ -21,7 +21,7 @@ public class InfrastructureTests
         Dtree dtree = new(Path.Combine("Examples", "ex001.td"), new List<List<int>> { new() { 0, 1 }, new() { 2, 3 }, new() { 3, 4 } });
         foreach (var line in dtree.SerializeAsDtree())
         {
-            Console.WriteLine(line());
+            Console.WriteLine(line);
         }
     }
 
