@@ -13,6 +13,7 @@ namespace JT_2_DT
         private int _nodeCount;
         private int _rootByConvention;
 
+        // clean build related
         private readonly bool _cleanBuild;
         List<HashSet<int>>? _mostInclusiveFamilies;
         List<int>? _familyToClauseIndices;
