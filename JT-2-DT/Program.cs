@@ -1,4 +1,5 @@
 ﻿using JT_2_DT;
+using JT_2_DT.Solvers.Exact;
 using System.Diagnostics;
 
 // requesting temp files
@@ -7,7 +8,6 @@ string tempGrFilename = Path.GetTempFileName();
 string tempDtreeFilename = Path.GetTempFileName();
 
 // some external file path definitions
-string twPath = Path.Combine("external_executables", "tw.jar");
 string c2dPath = Path.Combine("external_executables", "c2d_windows.exe");
 
 // overall arguments
@@ -48,13 +48,8 @@ MoralGraph graph = new(formula);
 graph.OutputToFile(tempGrFilename);
 
 // td solver (tw)
-using (Process twSolver = new())
-{
-    twSolver.StartInfo.FileName = "java";
-    twSolver.StartInfo.Arguments = $"-jar {twPath} {tempGrFilename} {tempTdFilename}";
-    twSolver.Start();
-    twSolver.WaitForExit();
-}
+ITwSolver solver = new Twalgor();
+await solver.ExecuteAsync(tempGrFilename, tempTdFilename);
 
 // dtree compilation
 Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);
