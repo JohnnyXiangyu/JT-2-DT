@@ -36,7 +36,13 @@
     <None Update="external_executables\c2d_windows.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="external_executables\exact_solvers\tamaki2017_exact.jar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="external_executables\exact_solvers\tw.jar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="external_executables\heuristic_solvers\tamaki2017_heuristic.jar">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="external_executables\tw.jar">
@@ -45,11 +51,6 @@
     <None Update="external_executables\tw_acsd.jar">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="external_executables\exact_solvers\" />
-    <Folder Include="external_executables\heuristic_solvers\" />
   </ItemGroup>
 
 </Project>

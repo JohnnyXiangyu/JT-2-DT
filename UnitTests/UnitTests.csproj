@@ -59,4 +59,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="external_executables\heuristic_solvers\" />
+  </ItemGroup>
+
 </Project>
