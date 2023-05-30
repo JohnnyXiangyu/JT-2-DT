@@ -1,4 +1,5 @@
 using JT_2_DT;
+using System.Diagnostics;
 
 namespace UnitTests;
 
@@ -28,10 +29,8 @@ public class InfrastructureTests
     [TestMethod]
     public void MoralGraphImplementation()
     {
-        Cnf formula = new(Path.Combine("Examples", "short_cnf"));
+        Cnf formula = new(Path.Combine("Examples", "sat-grid-pbl-0015.cnf"));
         MoralGraph graph = new(formula);
         Console.WriteLine(graph.Serialize());
     }
-
-
 }

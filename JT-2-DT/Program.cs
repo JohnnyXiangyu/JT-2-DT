@@ -1,5 +1,6 @@
 ﻿using JT_2_DT;
 using JT_2_DT.Solvers.Exact;
+using JT_2_DT.Solvers.Heuristic;
 using System.Diagnostics;
 
 // requesting temp files
@@ -47,9 +48,10 @@ Cnf formula = new(cnfPath);
 MoralGraph graph = new(formula);
 graph.OutputToFile(tempGrFilename);
 
-// td solver (tw)
-ITwSolver solver = new Twalgor();
-await solver.ExecuteAsync(tempGrFilename, tempTdFilename);
+// solver
+ITwSolver solver = new FlowCutter();
+solver.Execute(tempGrFilename, tempTdFilename);
+// await solver.ExecuteAsync(tempGrFilename, tempTdFilename);
 
 // dtree compilation
 Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);

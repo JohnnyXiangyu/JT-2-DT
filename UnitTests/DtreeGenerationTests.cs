@@ -1,5 +1,6 @@
 ﻿using JT_2_DT;
 using JT_2_DT.Solvers.Exact;
+using JT_2_DT.Solvers.Heuristic;
 using System.Diagnostics;
 
 namespace UnitTests;
@@ -17,7 +18,7 @@ public class DtreeGenerationTests
 
         // compute the tree decomposition
         string tempTdFilename = Path.GetTempFileName();
-        ITwSolver solver = new Twalgor();
+        ITwSolver solver = new FlowCutter(); // change this line to use a different solver
         solver.Execute(tempGrFilename, tempTdFilename);
 
         // compute the dtree
@@ -47,12 +48,12 @@ public class DtreeGenerationTests
     [TestMethod]
     public void StandardBenchDirty()
     {
-        DtreeGenerationBench(Path.Combine("Examples", "sat-grid-pbl-0010.cnf"), false);
+        DtreeGenerationBench(Path.Combine("Examples", "sat-grid-pbl-0015.cnf"), false);
     }
 
     [TestMethod]
     public void StandardBenchClean()
     {
-        DtreeGenerationBench(Path.Combine("Examples", "sat-grid-pbl-0010.cnf"), true);
+        DtreeGenerationBench(Path.Combine("Examples", "sat-grid-pbl-0015.cnf"), true);
     }
 }
