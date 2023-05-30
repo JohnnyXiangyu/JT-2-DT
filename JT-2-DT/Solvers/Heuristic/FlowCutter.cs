@@ -9,7 +9,7 @@ public class FlowCutter : ITwSolver
 
     private static Process StartSolver(string inputPath)
     {
-        string solverPath = Path.Combine("external_executables", "heuristic_solvers", "flow_cutter_pace17.exe");
+        string solverPath = Path.Combine("external_executables", "heuristic_solvers", $"flow_cutter_pace17_{Defines.OsSuffix}");
         
         Process wrapper = new();
         wrapper.StartInfo.FileName = solverPath;
@@ -20,11 +20,11 @@ public class FlowCutter : ITwSolver
 
     private static Process StartKiller(Process victim)
     {
-        string killerPath = Path.Combine("external_executables", "windows-kill.exe");
+        string killerPath = "kill";
 
         Process killerInstance = new();
         killerInstance.StartInfo.FileName = killerPath;
-        killerInstance.StartInfo.Arguments = $"-SIGINT {victim.Id}";
+        killerInstance.StartInfo.Arguments = $"-TERM {victim.Id}";
         return killerInstance;
     }
 
@@ -36,11 +36,11 @@ public class FlowCutter : ITwSolver
         Task.Delay(TotalDuration).Wait();
         using Process killer = StartKiller(solver);
 
-        ControlHandling.DisableSigint();
+        // ControlHandling.DisableSigint();
         killer.Start();
         killer.WaitForExit();
         solver.WaitForExit();
-        ControlHandling.EnableSigint();
+        // ControlHandling.EnableSigint();
 
         // read the output
         string output = solver.StandardOutput.ReadToEnd();

@@ -33,6 +33,9 @@
     <None Update="Examples\short_jtree.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="external_executables\c2d_linux">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="external_executables\c2d_windows.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -42,7 +45,10 @@
     <None Update="external_executables\exact_solvers\tw.jar">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="external_executables\heuristic_solvers\flow_cutter_pace17.exe">
+    <None Update="external_executables\heuristic_solvers\flow_cutter_pace17_linux">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="external_executables\heuristic_solvers\flow_cutter_pace17_windows.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="external_executables\heuristic_solvers\tamaki2017_heuristic.jar">
