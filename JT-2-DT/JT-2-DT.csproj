@@ -33,6 +33,9 @@
     <None Update="Examples\short_jtree.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Examples\long.gr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="external_executables\c2d_linux">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
