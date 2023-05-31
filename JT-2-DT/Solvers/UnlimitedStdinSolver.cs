@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace JT_2_DT.Solvers.Heuristic;
+namespace JT_2_DT.Solvers;
 
 public abstract class UnlimitedStdinSolver : ITwSolver
 {

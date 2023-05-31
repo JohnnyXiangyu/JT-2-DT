@@ -56,7 +56,7 @@ if (mode == "--moral-graph")
 graph.OutputToFile(tempGrFilename);
 
 // solver
-ITwSolver solver = new JT_2_DT.Solvers.Heuristic.MinFillBgMrs();
+ITwSolver solver = new JT_2_DT.Solvers.Exact.Tamaki2016();
 solver.Execute(tempGrFilename, tempTdFilename);
 
 // dtree compilation
