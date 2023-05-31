@@ -1,6 +1,5 @@
 ﻿using JT_2_DT;
 using System.Diagnostics;
-using System.Reflection;
 
 // requesting temp files
 string tempTdFilename = Path.GetTempFileName();
