@@ -1,6 +1,5 @@
 ﻿using JT_2_DT;
-using JT_2_DT.Solvers.Exact;
-using JT_2_DT.Solvers.Heuristic;
+using JT_2_DT.Solvers;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -55,7 +54,7 @@ MoralGraph graph = new(formula);
 graph.OutputToFile(tempGrFilename);
 
 // solver
-ITwSolver solver = new FlowCutter();
+ITwSolver solver = new JT_2_DT.Solvers.Heuristic.Tamaki2017();
 solver.Execute(tempGrFilename, tempTdFilename);
 
 // dtree compilation

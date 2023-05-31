@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace JT_2_DT.Solvers.Heuristic;
 
-public class FlowCutter : ITwSolver
+public class FlowCutter : LinuxSolver
 {
 	private const int TotalDuration = 1000;
 
@@ -19,17 +19,7 @@ public class FlowCutter : ITwSolver
 		return wrapper;
 	}
 
-	private static Process StartKiller(Process victim)
-	{
-		string killerPath = "kill";
-
-		Process killerInstance = new();
-		killerInstance.StartInfo.FileName = killerPath;
-		killerInstance.StartInfo.Arguments = $"-TERM {victim.Id}";
-		return killerInstance;
-	}
-
-	public void Execute(string inputPath, string outputPath)
+	public override void Execute(string inputPath, string outputPath)
 	{
 		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
@@ -40,13 +30,9 @@ public class FlowCutter : ITwSolver
 		solver.Start();
 
 		Task.Delay(TotalDuration).Wait();
-		using Process killer = StartKiller(solver);
-
-		// ControlHandling.DisableSigint();
-		killer.Start();
-		killer.WaitForExit();
+		
+		Kill(solver);
 		solver.WaitForExit();
-		// ControlHandling.EnableSigint();
 
 		// read the output
 		string output = solver.StandardOutput.ReadToEnd();
