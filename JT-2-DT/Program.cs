@@ -13,7 +13,7 @@ string tempDtreeFilename = dtreeFileAgent.TempFilePath;
 // overall arguments
 string cnfPath = string.Empty;
 bool useCleanBuild = false;
-string mode = string.Empty;
+string mode = "--dnnf";
 
 // load from input or commandline
 if (args.Length <= 0)
