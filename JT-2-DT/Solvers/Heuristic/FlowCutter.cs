@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace JT_2_DT.Solvers.Heuristic;
 
