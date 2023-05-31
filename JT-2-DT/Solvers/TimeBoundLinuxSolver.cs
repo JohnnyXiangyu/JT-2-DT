@@ -25,7 +25,10 @@ public abstract class TimeBoundLinuxSolver : ITwSolver
 
 		Task.Delay(Defines.TotalDuration).Wait();
 		
-		Kill(solver);
+		if (!solver.HasExited)
+		{
+			Kill(solver);
+		}
 		solver.WaitForExit();
 
 		// read the output

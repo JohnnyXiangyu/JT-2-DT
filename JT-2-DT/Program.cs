@@ -44,7 +44,7 @@ MoralGraph graph = new(formula);
 graph.OutputToFile(tempGrFilename);
 
 // solver
-ITwSolver solver = new JT_2_DT.Solvers.Exact.Tdlib();
+ITwSolver solver = new JT_2_DT.Solvers.Heuristic.Jdrasil();
 solver.Execute(tempGrFilename, tempTdFilename);
 
 // dtree compilation
