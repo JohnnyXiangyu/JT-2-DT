@@ -2,7 +2,7 @@
 
 namespace JT_2_DT.Solvers.Heuristic;
 
-public class FlowCutter : LinuxSolver
+public class FlowCutter : TimeBoundLinuxSolver
 {
 	private const int TotalDuration = 1000;
 

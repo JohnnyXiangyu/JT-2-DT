@@ -44,7 +44,7 @@ MoralGraph graph = new(formula);
 graph.OutputToFile(tempGrFilename);
 
 // solver
-ITwSolver solver = new JT_2_DT.Solvers.Exact.Tamaki2017();
+ITwSolver solver = new JT_2_DT.Solvers.Exact.Tdlib();
 solver.Execute(tempGrFilename, tempTdFilename);
 
 // dtree compilation

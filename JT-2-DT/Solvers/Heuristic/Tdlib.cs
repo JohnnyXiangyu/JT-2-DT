@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace JT_2_DT.Solvers.Heuristic;
 
-public class P17 : LinuxSolver
+public class Tdlib : TimeBoundLinuxSolver
 {
 	protected override Process GetSolver()
 	{

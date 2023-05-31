@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace JT_2_DT.Solvers;
 
-public abstract class LinuxSolver : ITwSolver
+public abstract class TimeBoundLinuxSolver : ITwSolver
 {	
 	public void Execute(string inputPath, string outputPath) 
 	{
