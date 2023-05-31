@@ -166,7 +166,7 @@ namespace JT_2_DT
                 int nextLeaf = stack.Pop();
 
                 HashSet<int> newLeaves = BanishNode(nextLeaf);
-                foreach (int leaf in range.Intersect(newLeaves))
+                foreach (int leaf in newLeaves)
                 {
                     stack.Push(leaf);
                 }
