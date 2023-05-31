@@ -19,4 +19,6 @@ public static class Defines
 			throw new NotImplementedException("unsupported operating system");
 		}
 	}}
+	
+	public const int TotalDuration = 1000;
 }
