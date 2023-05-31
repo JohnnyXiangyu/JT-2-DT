@@ -2,13 +2,18 @@
 using System.Diagnostics;
 
 // requesting temp files
-string tempTdFilename = Path.GetTempFileName();
-string tempGrFilename = Path.GetTempFileName();
-string tempDtreeFilename = Path.GetTempFileName();
+using TempFileAgent tdFileAgent = new();
+using TempFileAgent grFileAgent = new();
+using TempFileAgent dtreeFileAgent = new();
+
+string tempTdFilename = tdFileAgent.TempFilePath;
+string tempGrFilename = grFileAgent.TempFilePath;
+string tempDtreeFilename = dtreeFileAgent.TempFilePath;
 
 // overall arguments
 string cnfPath = string.Empty;
 bool useCleanBuild = false;
+string mode = string.Empty;
 
 // load from input or commandline
 if (args.Length <= 0)
@@ -21,58 +26,67 @@ if (args.Length <= 0)
 }
 else
 {
-	if (args.Length >= 1)
+	if (args.Length >= 1) 
 	{
-		cnfPath = args[0];
+		mode = args[0];
 	}
-	if (args.Length == 2)
+	if (args.Length >= 2)
 	{
-		useCleanBuild = args[1] == "--clean";
+		cnfPath = args[1];
 	}
-	if (args.Length > 2)
+	if (args.Length == 3)
 	{
-		Console.WriteLine("at most 2 arguments are accepted");
-		return;
+		useCleanBuild = args[2] == "--clean";
 	}
 }
 
-Stopwatch timer = Stopwatch.StartNew();
+using TimerAgent timer = new();
 
 // moralization
 Cnf formula = new(cnfPath);
 MoralGraph graph = new(formula);
+
+// if mode is moral graph, break here
+if (mode == "--moral-graph") 
+{
+	Console.WriteLine(graph.Serialize());
+	return;
+}
+
 graph.OutputToFile(tempGrFilename);
 
 // solver
-ITwSolver solver = new JT_2_DT.Solvers.Exact.Jdrasil();
+ITwSolver solver = new JT_2_DT.Solvers.Heuristic.MinFillBgMrs();
 solver.Execute(tempGrFilename, tempTdFilename);
 
 // dtree compilation
 Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);
-foreach (string line in dtree.SerializeAsDtree()) 
+
+if (mode == "--dtree") 
 {
-	Console.WriteLine(line);
+	foreach (string line in dtree.SerializeAsDtree()) 
+	{
+		Console.WriteLine(line);
+	}
+	return;
 }
 
-// File.WriteAllLines(tempDtreeFilename, dtree.SerializeAsDtree());
+if (mode != "--dnnf") 
+{
+	throw new ArgumentException("unrecognized mode");
+}
 
-// // c2d invocation
-// string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
-// using (Process c2dInstance = new())
-// {
-// 	Console.WriteLine(File.Exists(c2dPath));
+File.WriteAllLines(tempDtreeFilename, dtree.SerializeAsDtree());
+
+// c2d invocation
+string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
+using (Process c2dInstance = new())
+{
+	Console.WriteLine(File.Exists(c2dPath));
 	
-// 	c2dInstance.StartInfo.UseShellExecute = false;
-// 	c2dInstance.StartInfo.FileName = c2dPath;
-// 	c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -dt_in {tempDtreeFilename}";
-// 	c2dInstance.Start();
-// 	c2dInstance.WaitForExit();
-// }
-
-// report time
-Debug.WriteLine($"{timer.Elapsed.TotalSeconds} seconds");
-
-// finally release the temp files
-File.Delete(tempTdFilename);
-File.Delete(tempGrFilename);
-File.Delete(tempDtreeFilename);
+	c2dInstance.StartInfo.UseShellExecute = false;
+	c2dInstance.StartInfo.FileName = c2dPath;
+	c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -dt_in {tempDtreeFilename}";
+	c2dInstance.Start();
+	c2dInstance.WaitForExit();
+}
