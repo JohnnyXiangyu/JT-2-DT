@@ -68,7 +68,7 @@ namespace JT_2_DT
                         }
                     case 'b':
                         {
-                            var words = line.Split(' ');
+                            var words = line.TrimEnd().Split(' ');
                             int clusterIndex = int.Parse(words[1]) - 1;
 
                             for (int i = 2; i < words.Length; i++)
