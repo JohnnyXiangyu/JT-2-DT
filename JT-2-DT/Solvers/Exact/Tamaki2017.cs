@@ -18,6 +18,7 @@ namespace JT_2_DT.Solvers.Exact
 			{
 				fs.CopyTo(solver.StandardInput.BaseStream);
 			}
+			solver.StandardInput.Close();
 			
 			solver.WaitForExit();
 			string result = solver.StandardOutput.ReadToEnd();

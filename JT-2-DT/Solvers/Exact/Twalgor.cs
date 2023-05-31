@@ -15,16 +15,16 @@ public class Twalgor : ITwSolver
         twSolver.WaitForExit();
     }
 
-    public Task ExecuteAsync(string inputPath, string outputPath)
-    {
-        Process twSolver = new();
-        twSolver.StartInfo.FileName = "java";
-        twSolver.StartInfo.Arguments = $"-jar {_solverPath} {inputPath} {outputPath}";
-        twSolver.Start();
-        return Task.Run(async () =>
-        {
-            await twSolver.WaitForExitAsync();
-            twSolver.Dispose();
-        });
-    }
+    // public Task ExecuteAsync(string inputPath, string outputPath)
+    // {
+    //     Process twSolver = new();
+    //     twSolver.StartInfo.FileName = "java";
+    //     twSolver.StartInfo.Arguments = $"-jar {_solverPath} {inputPath} {outputPath}";
+    //     twSolver.Start();
+    //     return Task.Run(async () =>
+    //     {
+    //         await twSolver.WaitForExitAsync();
+    //         twSolver.Dispose();
+    //     });
+    // }
 }
