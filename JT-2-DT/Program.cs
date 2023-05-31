@@ -7,14 +7,6 @@ string tempTdFilename = Path.GetTempFileName();
 string tempGrFilename = Path.GetTempFileName();
 string tempDtreeFilename = Path.GetTempFileName();
 
-// some external file path definitions
-string? exePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-if (exePath == null) 
-{
-	throw new IOException();
-}
-string c2dPath = Path.Combine(exePath, "external_executables", $"c2d_{Defines.OsSuffix}");
-
 // overall arguments
 string cnfPath = string.Empty;
 bool useCleanBuild = false;
@@ -66,6 +58,7 @@ foreach (string line in dtree.SerializeAsDtree())
 // File.WriteAllLines(tempDtreeFilename, dtree.SerializeAsDtree());
 
 // // c2d invocation
+// string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
 // using (Process c2dInstance = new())
 // {
 // 	Console.WriteLine(File.Exists(c2dPath));
