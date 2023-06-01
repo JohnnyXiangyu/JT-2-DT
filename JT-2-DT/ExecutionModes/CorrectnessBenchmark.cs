@@ -37,30 +37,31 @@ public class CorrectnessBenchmark
 			"--dirty"
 		};
 		
-		IEnumerable<string[]> AllConfigs() 
+		Task baselineTask = Task.Run(() => 
 		{
-			foreach (string cnf in cnfFiles) 
+			
+		});
+		
+		foreach (string cnf in cnfFiles) 
+		{
+			foreach (string solver in solvers) 
 			{
-				foreach (string solver in solvers) 
+				foreach (string clean in cleanness) 
 				{
-					foreach (string clean in cleanness) 
+					Logger logger = new((x) => 
 					{
-						string cnfPath = Path.Combine("Examples", cnf);
-						yield return new string[] {mode, cnfPath, clean, solver};
-					}
+						ModelCountResults? result = FilterModelCount(x);
+						if (result != null) 
+						{
+							Console.WriteLine($"{solver}, {cnf}, {clean}, {result?.Count}");
+						}
+					});
+					
+					string cnfPath = Path.Combine("Examples", cnf);
+					string[] args = {mode, cnfPath, clean, solver};
+					FullPipeline.Run(args, logger);
 				}
 			}
-		}
-		
-		
-		// use custom logger
-		foreach (string[] args in AllConfigs()) 
-		{
-			Logger logger = new((x) => 
-			{
-				Console.WriteLine(x);
-			});
-			FullPipeline.Run(args, logger);
 		}
 	}
 	

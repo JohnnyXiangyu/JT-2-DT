@@ -4,7 +4,7 @@ namespace JT_2_DT.ExecutionModes;
 
 public class FullPipeline
 {
-	public static void Run(string[] args, Logger logger)
+	public static void Run(string[] args, Logger logger, int timeout = -1)
 	{
 		// requesting temp files
 		using TempFileAgent tdFileAgent = new();
