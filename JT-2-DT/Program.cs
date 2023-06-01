@@ -1,4 +1,5 @@
 ﻿using JT_2_DT.ExecutionModes;
+using JT_2_DT;
 
 if (args.Length == 0) 
 {
@@ -6,5 +7,5 @@ if (args.Length == 0)
 }
 else 
 {
-	FullPipeline.Run(args);
+	FullPipeline.Run(args, Logger.ConsoleLogger());
 }

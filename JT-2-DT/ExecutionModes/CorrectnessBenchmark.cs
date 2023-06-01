@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace JT_2_DT.ExecutionModes;
 
@@ -51,9 +52,38 @@ public class CorrectnessBenchmark
 			}
 		}
 		
+		
+		// use custom logger
 		foreach (string[] args in AllConfigs()) 
 		{
-			FullPipeline.Run(args);
+			Logger logger = new((x) => 
+			{
+				Console.WriteLine(x);
+			});
+			FullPipeline.Run(args, logger);
 		}
+	}
+	
+	static Regex s_ModelCountPattern = new(@"Counting...(?<count>\d+) models / (?<time>\d+\.\d+)s");
+	
+	private struct ModelCountResults 
+	{
+		public string Count { get; init; }
+		public string Time { get; init; }
+	}
+	
+	private static ModelCountResults? FilterModelCount(string line) 
+	{
+		Match modelCountMatch = s_ModelCountPattern.Match(line);
+		if (!modelCountMatch.Success) 
+		{
+			return null;
+		}
+		
+		return new ModelCountResults 
+		{
+			Count = modelCountMatch.Groups["count"].Value,
+			Time = modelCountMatch.Groups["time"].Value
+		};
 	}
 }

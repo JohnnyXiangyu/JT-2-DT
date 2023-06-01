@@ -4,7 +4,7 @@ namespace JT_2_DT.ExecutionModes;
 
 public class FullPipeline
 {
-	public static void Run(string[] args)
+	public static void Run(string[] args, Logger logger)
 	{
 		// requesting temp files
 		using TempFileAgent tdFileAgent = new();
@@ -48,7 +48,7 @@ public class FullPipeline
 		// if mode is moral graph, break here
 		if (mode == "--moral-graph")
 		{
-			Console.WriteLine(graph.Serialize());
+			logger.LogInformation(graph.Serialize());
 			return;
 		}
 
@@ -85,7 +85,7 @@ public class FullPipeline
 		{
 			foreach (string line in dtree.SerializeAsDtree())
 			{
-				Console.WriteLine(line);
+				logger.LogInformation(line);
 			}
 			return;
 		}
@@ -95,12 +95,18 @@ public class FullPipeline
 		string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
 		using (Process c2dInstance = new())
 		{
-			Console.WriteLine(File.Exists(c2dPath));
+			logger.LogInformation(File.Exists(c2dPath).ToString());
 
-			c2dInstance.StartInfo.UseShellExecute = false;
 			c2dInstance.StartInfo.FileName = c2dPath;
 			c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -dt_in {tempDtreeFilename} -count";
+			c2dInstance.StartInfo.RedirectStandardOutput = true;
 			c2dInstance.Start();
+			
+			string? c2dOutputLine;
+			while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null) 
+			{
+				logger.LogInformation(c2dOutputLine);
+			}
 			c2dInstance.WaitForExit();
 		}
 	}
