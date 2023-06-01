@@ -1,4 +1,4 @@
-namespace JT_2_DT;
+namespace JT_2_DT.Utils;
 
 public class TempFileAgent : IDisposable
 {

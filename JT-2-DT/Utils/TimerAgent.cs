@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace JT_2_DT;
+namespace JT_2_DT.Utils;
 
 public class TimerAgent : IDisposable
 {
