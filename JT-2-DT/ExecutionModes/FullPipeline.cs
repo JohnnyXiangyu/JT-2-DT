@@ -106,12 +106,17 @@ public class FullPipeline
 			c2dInstance.StartInfo.RedirectStandardOutput = true;
 			c2dInstance.Start();
 			
+			c2dInstance.WaitForExit(Defines.C2dTimeout);
+			if (!c2dInstance.HasExited) 
+			{
+				throw new TimeoutException($"c2d didn't finish within {Defines.C2dTimeout} ms");
+			}
+			
 			string? c2dOutputLine;
 			while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null) 
 			{
 				logger.LogInformation(c2dOutputLine);
 			}
-			c2dInstance.WaitForExit();
 		}
 		logger.LogInformation($"[timer] dnnf: {sharedTimer.Elapsed.TotalMilliseconds}");
 	}

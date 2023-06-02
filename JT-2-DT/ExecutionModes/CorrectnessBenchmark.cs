@@ -144,7 +144,8 @@ public class CorrectnessBenchmark
 
 							// calculate dnnf size
 							string dnnfPath = $"{tempCnf.TempFilePath}.nnf";
-							dnnfInfo = new(dnnfPath);
+							if (File.Exists(dnnfPath))
+								dnnfInfo = new(dnnfPath);
 						}
 						catch (TimeoutException)
 						{
