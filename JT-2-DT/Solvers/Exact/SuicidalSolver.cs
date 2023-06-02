@@ -11,6 +11,7 @@ public abstract class SuicidalSolver : ITwSolver
 		using Process solver = GetSolver();
 		solver.StartInfo.RedirectStandardOutput = true;
 		solver.StartInfo.RedirectStandardInput = true;
+		solver.StartInfo.RedirectStandardError = true;
 		solver.Start();
 
 		using (FileStream fs = File.OpenRead(inputPath))

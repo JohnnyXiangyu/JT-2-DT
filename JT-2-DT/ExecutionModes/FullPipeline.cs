@@ -104,7 +104,7 @@ public class FullPipeline
 			logger.LogInformation(File.Exists(c2dPath).ToString());
 
 			c2dInstance.StartInfo.FileName = c2dPath;
-			c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -dt_in {tempDtreeFilename} -count";
+			c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -dt_in {tempDtreeFilename} -count -smooth_all -reduce";
 			c2dInstance.StartInfo.RedirectStandardOutput = true;
 			c2dInstance.Start();
 			

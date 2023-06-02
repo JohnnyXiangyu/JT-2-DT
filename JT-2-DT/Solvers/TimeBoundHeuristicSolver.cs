@@ -15,6 +15,7 @@ public abstract class TimeBoundHeuristicSolver : ITwSolver
 		using Process solver = GetSolver();
 		solver.StartInfo.RedirectStandardInput = true;
 		solver.StartInfo.RedirectStandardOutput = true;
+		solver.StartInfo.RedirectStandardError = true;
 		solver.Start();
 		
 		using (FileStream fs = File.OpenRead(inputPath)) 
