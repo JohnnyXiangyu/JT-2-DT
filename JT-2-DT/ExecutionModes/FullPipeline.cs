@@ -73,7 +73,7 @@ public class FullPipeline
 		case "--htd":
 			solver = new JT_2_DT.Solvers.Heuristic.Htd();
 			break;
-		case "--tdlib":
+		case "--tdlib-exact":
 			solver = new JT_2_DT.Solvers.Exact.Tdlib();
 			break;
 		default:
@@ -109,6 +109,7 @@ public class FullPipeline
 			c2dInstance.WaitForExit(Defines.C2dTimeout);
 			if (!c2dInstance.HasExited) 
 			{
+				c2dInstance.Kill();
 				throw new TimeoutException($"c2d didn't finish within {Defines.C2dTimeout} ms");
 			}
 			

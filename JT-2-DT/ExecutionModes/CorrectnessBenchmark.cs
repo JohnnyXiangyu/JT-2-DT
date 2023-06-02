@@ -13,7 +13,7 @@ public class CorrectnessBenchmark
 			"sat-grid-pbl-0015.cnf",
 			"sat-grid-pbl-0020.cnf",
 			"sat-grid-pbl-0025.cnf",
-			// "sat-grid-pbl-0030.cnf"
+			"sat-grid-pbl-0030.cnf"
 		};
 
 		if (cnfFiles.Any(x => !File.Exists(Path.Combine("Examples", x))))
@@ -25,8 +25,9 @@ public class CorrectnessBenchmark
 		{
 			"tamaki2017-heuristic",
 			"flowcutter",
-			"tamaki2017-exact",
-			"tdlib",
+			"htd",
+			// "tamaki2017-exact",
+			// "tdlib-exact",
 		};
 
 		string mode = "--dnnf";
