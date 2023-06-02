@@ -55,7 +55,7 @@ public class CorrectnessBenchmark
 			{
 				using Process c2dInstance = new();
 				c2dInstance.StartInfo.FileName = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
-				c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -count -smooth_all -reduce";
+				c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -count -smooth_all -reduce -dt_method 3";
 				c2dInstance.StartInfo.RedirectStandardOutput = true;
 				c2dInstance.Start();
 
