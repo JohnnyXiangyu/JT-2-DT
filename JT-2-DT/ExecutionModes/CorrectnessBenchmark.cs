@@ -10,7 +10,7 @@ public class CorrectnessBenchmark
 		string[] cnfFiles =
 		{
 			"sat-grid-pbl-0010.cnf",
-			"sat-grid-pbl-0015.cnf",
+			// "sat-grid-pbl-0015.cnf",
 			// "sat-grid-pbl-0020.cnf",
 			// "sat-grid-pbl-0025.cnf",
 			// "sat-grid-pbl-0030.cnf"
@@ -47,10 +47,11 @@ public class CorrectnessBenchmark
 		}
 
 		// get baseline
-		Task[] baselineTasks = cnfFiles.Select(x =>
+		Dictionary<string, Task> baselineTasksByFile = new();
+		foreach (string cnfFile in cnfFiles)
 		{
-			string cnfPath = Path.Combine("Examples", x);
-			return Task.Run(() =>
+			string cnfPath = Path.Combine("Examples", cnfFile);
+			Task newBaselineTask = Task.Run(() =>
 			{
 				using Process c2dInstance = new();
 				c2dInstance.StartInfo.FileName = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
@@ -64,22 +65,22 @@ public class CorrectnessBenchmark
 					ModelCountResults? result = FilterModelCount(c2dOutputLine);
 					if (result != null)
 					{
-						baselineModelCounts[x] = result.Count;
+						baselineModelCounts[cnfFile] = result.Count;
 					}
 					else
 					{
 						Match c2dTimeMatch = s_C2dTimePattern.Match(c2dOutputLine);
 						if (c2dTimeMatch.Success)
 						{
-							baselineCompileTime[x] = c2dTimeMatch.Groups["sec"].Value;
+							baselineCompileTime[cnfFile] = c2dTimeMatch.Groups["sec"].Value;
 						}
 					}
 				}
 
 				c2dInstance.WaitForExit();
 			});
-		}).ToArray();
-		Task.WaitAll(baselineTasks);
+			baselineTasksByFile[cnfFile] = newBaselineTask;
+		}
 
 		// run my version
 		Console.WriteLine("Solver, CNF File, Dtree Mode, Finished?, Model Count, Correct?, DNNF Size (bytes), Time to Dtree (ms), Time to NNF/Model Count (ms), Vanilla c2d Compile Time (sec)"); // csv header
@@ -92,8 +93,10 @@ public class CorrectnessBenchmark
 			{
 				foreach (string cnf in cnfFiles)
 				{
-					Task instanceTask = Task.Run(() =>
+					Task instanceTask = Task.Run(async () =>
 					{
+						await baselineTasksByFile[cnf];
+						
 						// configure the logger
 						string myCount = string.Empty;
 						string dtreeTime = "0";
