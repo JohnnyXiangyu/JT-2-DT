@@ -7,5 +7,12 @@ if (args.Length == 0)
 }
 else 
 {
-	FullPipeline.Run(args, Logger.ConsoleLogger());
+	try 
+	{
+		FullPipeline.Run(args, Logger.ConsoleLogger());
+	}
+	catch (TimeoutException e) 
+	{
+		Console.WriteLine(e.Message);
+	}
 }

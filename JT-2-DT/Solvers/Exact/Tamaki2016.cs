@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace JT_2_DT.Solvers.Exact;
 
-public class Tamaki2016 : UnlimitedStdinSolver
+public class Tamaki2016 : SuicidalSolver
 {
     protected override Process GetSolver()
 	{

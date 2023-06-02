@@ -20,5 +20,6 @@ public static class Defines
 		}
 	}}
 	
-	public const int TotalDuration = 1000;
+	public const int HeuristicSolverTimeout = 1000;
+	public const int ExactSolverTimeout = 1000;
 }

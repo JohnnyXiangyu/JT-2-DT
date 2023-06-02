@@ -3,13 +3,13 @@ using System.Runtime.InteropServices;
 
 namespace JT_2_DT.Solvers;
 
-public abstract class TimeBoundLinuxSolver : ITwSolver
+public abstract class TimeBoundHeuristicSolver : ITwSolver
 {	
 	public void Execute(string inputPath, string outputPath) 
 	{
 		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			throw new NotImplementedException("flow cutter integration doesn't work on windows yet");
+			throw new NotImplementedException("time bound solver doesn't work on windows yet");
 		}
 		
 		using Process solver = GetSolver();
@@ -22,15 +22,13 @@ public abstract class TimeBoundLinuxSolver : ITwSolver
 			fs.CopyTo(solver.StandardInput.BaseStream);
 		}
 		solver.StandardInput.Close();
-
-		Task.Delay(Defines.TotalDuration).Wait();
 		
+		solver.WaitForExit(Defines.HeuristicSolverTimeout);
 		if (!solver.HasExited)
 		{
-			Kill(solver);
+			Terminate(solver);
 		}
-		solver.WaitForExit();
-
+		
 		// read the output
 		string output = solver.StandardOutput.ReadToEnd();
 		File.WriteAllText(outputPath, output);
@@ -38,7 +36,7 @@ public abstract class TimeBoundLinuxSolver : ITwSolver
 	
 	protected abstract Process GetSolver();
 	
-	protected void Kill(Process victim) 
+	protected void Terminate(Process victim) 
 	{
 		string killerPath = "kill";
 

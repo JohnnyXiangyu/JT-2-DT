@@ -17,7 +17,7 @@ public abstract class UnlimitedStdinSolver : ITwSolver
 		}
 		solver.StandardInput.Close();
 
-		Task.Delay(Defines.TotalDuration).Wait();
+		Task.Delay(Defines.HeuristicSolverTimeout).Wait();
 		
 		solver.WaitForExit();
 

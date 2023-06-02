@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace JT_2_DT.Solvers.Heuristic;
 
-public class Tamaki2017 : TimeBoundLinuxSolver
+public class Tamaki2017 : TimeBoundHeuristicSolver
 {
     protected override Process GetSolver()
     {
