@@ -7,6 +7,8 @@ public class FullPipeline
 {
 	public static void Run(string[] args, Logger logger, int timeout = -1)
 	{
+		Stopwatch sharedTimer = Stopwatch.StartNew();
+		
 		// requesting temp files
 		using TempFileAgent tdFileAgent = new();
 		using TempFileAgent grFileAgent = new();
@@ -39,12 +41,11 @@ public class FullPipeline
 		{
 			solverName = args[3];
 		}
-		
-		using TimerAgent timer = new();
 
 		// moralization
 		Cnf formula = new(cnfPath);
 		MoralGraph graph = new(formula);
+		logger.LogInformation($"[timer] moral graph: {sharedTimer.Elapsed.TotalMilliseconds}");
 
 		// if mode is moral graph, break here
 		if (mode == "--moral-graph")
@@ -72,6 +73,9 @@ public class FullPipeline
 		case "--htd":
 			solver = new JT_2_DT.Solvers.Heuristic.Htd();
 			break;
+		case "--tdlib":
+			solver = new JT_2_DT.Solvers.Exact.Tdlib();
+			break;
 		default:
 			solver = new JT_2_DT.Solvers.Heuristic.Tamaki2017();
 			break;
@@ -80,6 +84,7 @@ public class FullPipeline
 
 		// dtree compilation
 		Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);
+		logger.LogInformation($"[timer] dtree: {sharedTimer.Elapsed.TotalMilliseconds}");
 
 		// if we only want dtree
 		if (mode == "--dtree")
@@ -110,5 +115,6 @@ public class FullPipeline
 			}
 			c2dInstance.WaitForExit();
 		}
+		logger.LogInformation($"[timer] dnnf: {sharedTimer.Elapsed.TotalMilliseconds}");
 	}
 }

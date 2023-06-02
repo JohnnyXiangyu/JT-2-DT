@@ -5,10 +5,10 @@
             "name": "Benchmark",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": [],
+            "args": ["--benchmark"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
@@ -18,7 +18,7 @@
             "name": "DT: CNF 0010",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
             "args": ["--dtree", "Examples/sat-grid-pbl-0010.cnf", "--clean"],
@@ -31,7 +31,7 @@
             "name": "DT: CNF 0025",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
             "args": ["--dtree", "Examples/sat-grid-pbl-0025.cnf", "--clean"],
@@ -44,7 +44,7 @@
             "name": "DT: Really small CNF",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
             "args": ["--dtree", "Examples/short_cnf", "--clean"],
@@ -57,7 +57,7 @@
             "name": "DT Exact: large CNF",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
             "args": ["--dtree", "Examples/sat-grid-pbl-0025.cnf", "--clean", "--tamaki2017-exact"],
@@ -70,7 +70,7 @@
             "name": "NNF: CNF 0010",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
             "args": ["--dnnf", "Examples/sat-grid-pbl-0010.cnf", "--clean"],
