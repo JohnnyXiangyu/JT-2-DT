@@ -10,9 +10,9 @@ public class CorrectnessBenchmark
 		string[] cnfFiles =
 		{
 			"sat-grid-pbl-0010.cnf",
-			// "sat-grid-pbl-0015.cnf",
-			// "sat-grid-pbl-0020.cnf",
-			// "sat-grid-pbl-0025.cnf",
+			"sat-grid-pbl-0015.cnf",
+			"sat-grid-pbl-0020.cnf",
+			"sat-grid-pbl-0025.cnf",
 			// "sat-grid-pbl-0030.cnf"
 		};
 
