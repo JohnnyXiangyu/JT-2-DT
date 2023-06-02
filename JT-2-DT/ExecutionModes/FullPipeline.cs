@@ -101,8 +101,6 @@ public class FullPipeline
 		string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
 		using (Process c2dInstance = new())
 		{
-			logger.LogInformation(File.Exists(c2dPath).ToString());
-
 			c2dInstance.StartInfo.FileName = c2dPath;
 			c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -dt_in {tempDtreeFilename} -count -smooth_all -reduce";
 			c2dInstance.StartInfo.RedirectStandardOutput = true;
