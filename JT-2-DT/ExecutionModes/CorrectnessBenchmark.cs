@@ -193,8 +193,8 @@ public class CorrectnessBenchmark
 		using Utils.TempFileAgent tempCnf = new();
 		string cnfPath = tempCnf.TempFilePath;
 		{
-			FileStream originalCnf = File.OpenRead(cnfFile);
-			FileStream tempCnfFile = File.OpenWrite(tempCnf.TempFilePath);
+			using FileStream originalCnf = File.OpenRead(cnfFile);
+			using FileStream tempCnfFile = File.OpenWrite(tempCnf.TempFilePath);
 			await originalCnf.CopyToAsync(tempCnfFile);
 		}
 		
