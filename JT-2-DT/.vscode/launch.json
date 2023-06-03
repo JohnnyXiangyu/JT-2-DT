@@ -15,104 +15,13 @@
             "stopAtEntry": false
         },
         {
-            "name": "DT: CNF 0010",
+            "name": "NNF: simple1",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dtree", "Examples/sat-grid-pbl-0010.cnf", "--clean"],
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "DT: CNF 0025",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build Debug",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dtree", "Examples/sat-grid-pbl-0025.cnf", "--clean"],
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "DT: Really small CNF",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build Debug",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dtree", "Examples/short_cnf", "--clean"],
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "DT Exact: large CNF",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build Debug",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dtree", "Examples/sat-grid-pbl-0025.cnf", "--clean", "--tamaki2017-exact"],
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "NNF: CNF 0010",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build Debug",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dnnf", "Examples/sat-grid-pbl-0010.cnf", "--clean"],
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "NNF: CNF 0025",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build Debug",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dnnf", "Examples/sat-grid-pbl-0025.cnf", "--clean", "--htd"],
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "NNF: CNF 0030",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build Debug",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dnnf", "Examples/sat-grid-pbl-0030.cnf", "--clean", "--tamaki2017-heuristic"],
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Cls Reduction Handle",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build Debug",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dnnf", "Examples/benchmarks/lucas.cnf", "--dirty", "--tamaki2017-exact"],
+            "args": ["--dnnf", "Examples/simple1", "--clean", "--tamaki2017-exact"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
