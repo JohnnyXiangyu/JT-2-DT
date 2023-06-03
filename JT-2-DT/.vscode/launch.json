@@ -28,13 +28,13 @@
             "stopAtEntry": false
         },
         {
-            "name": "NNF: simple1",
+            "name": "Dtree: simple1",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dnnf", "Examples/simple1.cnf", "--clean", "--tamaki2017-exact"],
+            "args": ["--dtree", "Examples/simple1.cnf", "--clean", "--tamaki2017-exact"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
