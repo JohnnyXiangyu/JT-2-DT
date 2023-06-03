@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace JT_2_DT.Solvers.Heuristic;
 
-public class MinFillBgMrs : UnlimitedStdinSolver
+public class MinFillBgMrs : SelfTerminatingHeuristicSolver
 {
 	protected override Process GetSolver()
 	{

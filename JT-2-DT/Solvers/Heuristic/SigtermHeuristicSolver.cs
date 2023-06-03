@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace JT_2_DT.Solvers;
+namespace JT_2_DT.Solvers.Heuristic;
 
-public abstract class TimeBoundHeuristicSolver : ITwSolver
+public abstract class SigtermHeuristicSolver : ITwSolver
 {	
 	public void Execute(string inputPath, string outputPath) 
 	{

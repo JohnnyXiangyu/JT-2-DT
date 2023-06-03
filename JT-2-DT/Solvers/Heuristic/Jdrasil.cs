@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace JT_2_DT.Solvers.Heuristic;
 
-public class Jdrasil : TimeBoundHeuristicSolver
+public class Jdrasil : SigtermHeuristicSolver
 {
 	protected override Process GetSolver()
 	{

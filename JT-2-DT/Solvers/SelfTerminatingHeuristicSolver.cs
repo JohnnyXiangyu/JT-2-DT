@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace JT_2_DT.Solvers;
 
-public abstract class UnlimitedStdinSolver : ITwSolver
+public abstract class SelfTerminatingHeuristicSolver : ITwSolver
 {
 	public void Execute(string inputPath, string outputPath) 
 	{		
@@ -16,10 +16,14 @@ public abstract class UnlimitedStdinSolver : ITwSolver
 			fs.CopyTo(solver.StandardInput.BaseStream);
 		}
 		solver.StandardInput.Close();
-
-		Task.Delay(Defines.HeuristicSolverTimeout).Wait();
 		
-		solver.WaitForExit();
+		solver.WaitForExit(Defines.HeuristicSolverTimeout);
+		
+		if (!solver.HasExited) 
+		{
+			solver.Kill();
+			throw new TimeoutException($"solver did not finish under {Defines.HeuristicSolverTimeout} ms");
+		}
 
 		// read the output
 		string output = solver.StandardOutput.ReadToEnd();
