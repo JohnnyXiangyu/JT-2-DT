@@ -171,7 +171,7 @@ public class CorrectnessBenchmark
 	{
 		List<string> cnfFiles = new();
 		
-		DirectoryInfo d = new DirectoryInfo(Path.Combine("Examples", "benchmarks"));
+		DirectoryInfo d = new DirectoryInfo("Examples");
 		FileInfo[] Files = d.GetFiles("*.cnf");
 
 		foreach(FileInfo file in Files )
