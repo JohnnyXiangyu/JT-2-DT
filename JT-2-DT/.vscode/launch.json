@@ -15,26 +15,13 @@
             "stopAtEntry": false
         },
         {
-            "name": "NNF: lucas",
+            "name": "Rolling",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dnnf", "Examples/lucas.cnf", "--clean", "--tamaki2017-exact"],
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Dtree: simple1",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build Debug",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dtree", "Examples/simple1.cnf", "--clean", "--tamaki2017-exact"],
+            "args": ["--dnnf", "Examples/uf200-01.cnf", "--clean", "--tamaki2017-heuristic"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

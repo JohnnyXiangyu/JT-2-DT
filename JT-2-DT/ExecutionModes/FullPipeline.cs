@@ -33,11 +33,11 @@ public class FullPipeline
 		{
 			cnfPath = args[1];
 		}
-		if (args.Length == 3)
+		if (args.Length >= 3)
 		{
 			useCleanBuild = args[2] == "--clean";
 		}
-		if (args.Length == 4) 
+		if (args.Length >= 4) 
 		{
 			solverName = args[3];
 		}

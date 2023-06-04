@@ -1,0 +1,21 @@
+// dtree does not match cnf (trivial clauses and duplicate literals)
+tdlib-exact, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/bmc-ibm-2.cnf, clean, True, , False, , 96443.5631, 96586.5584, 134.814
+tdlib-exact, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/bmc-ibm-2.cnf, dirty, True, , False, , 31906.1742, 32069.5219, 134.814
+flowcutter, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/bmc-ibm-2.cnf, clean, True, , False, , 540583.5041, 567905.7026, 134.814
+htd, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/bmc-ibm-2.cnf, clean, True, , False, , 514547.2568, 538795.4422, 134.814
+flowcutter, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/bmc-ibm-2.cnf, dirty, True, , False, , 516574.1998, 557754.0842, 134.814
+htd, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/bmc-ibm-2.cnf, dirty, True, , False, , 495499.2515, 524453.9083, 134.814
+tamaki2017-heuristic, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/bmc-ibm-2.cnf, clean, True, , False, , 595981.6689, 602209.6678, 134.814
+tamaki2017-heuristic, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/bmc-ibm-2.cnf, dirty, True, , False, , 588090.0366, 598482.9014, 134.814
+
+// formatting issue
+tamaki2017-heuristic, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, clean, True, , False, , 0, 0, 163.419
+tamaki2017-heuristic, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, dirty, True, , False, , 0, 0, 163.419
+flowcutter, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, clean, True, , False, , 0, 0, 163.419
+flowcutter, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, dirty, True, , False, , 0, 0, 163.419
+htd, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, clean, True, , False, , 0, 0, 163.419
+tamaki2017-exact, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, dirty, True, , False, , 0, 0, 163.419
+htd, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, dirty, True, , False, , 0, 0, 163.419
+tdlib-exact, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, clean, True, , False, , 0, 0, 163.419
+tdlib-exact, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, dirty, True, , False, , 0, 0, 163.419
+tamaki2017-exact, /home/johnny/repos/JT-2-DT/JT-2-DT/Examples/uf200-01.cnf, clean, True, , False, , 0, 0, 163.419
