@@ -15,7 +15,11 @@
 			// read the signed variables
 			foreach (var line in lines)
 			{
-				string[] words = line.Trim().Split(' ');
+				List<string> words = new(line.Trim().Split(' '));
+				words.RemoveAll(x => x.Length == 0);
+				
+				if (words.Count == 0) { continue; }
+				
 				switch (line[0])
 				{
 					case 'p':
