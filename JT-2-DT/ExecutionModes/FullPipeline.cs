@@ -102,7 +102,7 @@ public class FullPipeline
 		using (Process c2dInstance = new())
 		{
 			c2dInstance.StartInfo.FileName = c2dPath;
-			c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -dt_in {tempDtreeFilename} -count -smooth_all -reduce -keep_trivial_cls";
+			c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -dt_in {tempDtreeFilename} -count -smooth_all -reduce";
 			c2dInstance.StartInfo.RedirectStandardOutput = true;
 			c2dInstance.Start();
 			

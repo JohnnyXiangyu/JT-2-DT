@@ -21,7 +21,6 @@ namespace JT_2_DT
 
         private readonly Cnf _formula;
 
-
         public MoralGraph(Cnf formula)
         {
             _formula = formula;
@@ -48,7 +47,6 @@ namespace JT_2_DT
                                 }
                             }
                         }
-
                     }
                 });
 

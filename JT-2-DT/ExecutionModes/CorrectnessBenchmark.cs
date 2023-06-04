@@ -120,6 +120,10 @@ public class CorrectnessBenchmark
 							finished = false;
 							Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} timeout");
 						}
+						catch (Exception e) 
+						{
+							Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} unknown error, {e}");
+						}
 						finally
 						{
 							await baselineTasksByFile[cnfPath];

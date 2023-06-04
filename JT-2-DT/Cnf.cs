@@ -9,8 +9,10 @@
 		{
 			string[] lines = File.ReadAllLines(filePath);
 
-			Clauses = new(); // fail safe
+			List<List<int>> rawClauses = new(); // fail safe
+			List<int> newClause = new();
 
+			// read the signed variables
 			foreach (var line in lines)
 			{
 				string[] words = line.Trim().Split(' ');
@@ -29,23 +31,59 @@
 					default:
 						{
 							// register a clause
-							List<int> newClause = new(words.Length);
 							foreach (string word in words)
 							{
-								if (word[0] != '0')
+								if (word == " ") 
 								{
-									// use 1-base variable notation, but still convert them to abs
-									// since we don't care about the original clause as long as we
-									// have a valid mapping
-									newClause.Add(Math.Abs(int.Parse(word))); 
+									continue;
+								}
+								if (word == "0")
+								{
+									rawClauses.Add(newClause);
+									newClause = new();
+								}
+								else 
+								{
+									newClause.Add(int.Parse(word));
 								}
 							}
-
-							Clauses!.Add(newClause);
 							break;
 						}
 				}
 			}
+			
+			// pre-processing
+			Clauses = rawClauses.SelectMany(x => 
+			{
+				HashSet<int> seenLiterals = new();
+				bool valid = true;
+				foreach (int literal in x)
+				{
+					if (seenLiterals.Contains(-literal)) 
+					{
+						valid = false;
+						break;
+					}
+					seenLiterals.Add(literal);
+				}
+				
+				if (!valid) 
+				{
+					return Array.Empty<List<int>>();
+				}
+				
+				return new List<int>[] 
+				{
+					x
+				};
+			}).Select(x => 
+			{
+				for (int i = 0; i < x.Count; i ++) 
+				{
+					x[i] = Math.Abs(x[i]);
+				}
+				return x;
+			}).ToList();
 		}
 	}
 }
