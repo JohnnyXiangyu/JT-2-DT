@@ -19,9 +19,9 @@ public class CorrectnessBenchmark
 		string[] solvers =
 		{
 			"tamaki2017-heuristic",
-			// "flowcutter",
+			"flowcutter",
 			// "htd",
-			// "tamaki2017-exact",
+			"tamaki2017-exact",
 			"tdlib-exact",
 		};
 
