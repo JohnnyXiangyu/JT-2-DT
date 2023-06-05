@@ -102,11 +102,11 @@ public class CorrectnessBenchmark
 							
 							if ((match = s_DtreeTimePattern.Match(x)).Success) 
 							{
-								dtreeTime = double.Parse(match.Groups["ms"].Value) / 1000;
+								dtreeTime = double.Parse(match.Groups["ms"].Value);
 							}
 							else if ((match = s_CompletionTimePattern.Match(x)).Success) 
 							{
-								completionTime = double.Parse(match.Groups["ms"].Value) / 1000;
+								completionTime = double.Parse(match.Groups["ms"].Value);
 							}
 							else if (x.Length > 0 && x[0] != '[') 
 							{

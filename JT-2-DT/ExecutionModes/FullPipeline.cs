@@ -45,7 +45,7 @@ public class FullPipeline
 		// moralization
 		Cnf formula = new(cnfPath);
 		MoralGraph graph = new(formula);
-		logger.LogInformation($"[timer] moral graph: {sharedTimer.Elapsed.TotalMilliseconds}");
+		logger.LogInformation($"[timer] moral graph: {sharedTimer.Elapsed.TotalSeconds}");
 
 		// if mode is moral graph, break here
 		if (mode == "--moral-graph")
@@ -84,7 +84,7 @@ public class FullPipeline
 
 		// dtree compilation
 		Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);
-		logger.LogInformation($"[timer] dtree: {sharedTimer.Elapsed.TotalMilliseconds}");
+		logger.LogInformation($"[timer] dtree: {sharedTimer.Elapsed.TotalSeconds}");
 
 		// if we only want dtree
 		if (mode == "--dtree")
@@ -119,6 +119,6 @@ public class FullPipeline
 				logger.LogInformation(c2dOutputLine);
 			}
 		}
-		logger.LogInformation($"[timer] completion: {sharedTimer.Elapsed.TotalMilliseconds}");
+		logger.LogInformation($"[timer] completion: {sharedTimer.Elapsed.TotalSeconds}");
 	}
 }
