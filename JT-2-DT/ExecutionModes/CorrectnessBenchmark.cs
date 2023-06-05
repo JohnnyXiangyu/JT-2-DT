@@ -57,15 +57,15 @@ public class CorrectnessBenchmark
 		StringBuilder csvHeader = new();
 		csvHeader.Append("Solver, ");
 		csvHeader.Append("CNF, ");
+		csvHeader.Append("NNF Size Ratio to Vanilla, ");
+		csvHeader.Append("DNNF Compilation Time Ratio to Vanilla, ");
+		csvHeader.Append("Total Time Ratio to Vanilla, ");
 		csvHeader.Append("Dtree Mode, ");
 		csvHeader.Append("Completion, ");
 		csvHeader.Append("NNF Size, ");
-		csvHeader.Append("NNF Size Ratio to Vanilla, ");
 		csvHeader.Append("Dtree Compilation Time, ");
 		csvHeader.Append("DNNF Compilation Time, ");
-		csvHeader.Append("DNNF Compilation Time Ratio to Vanilla, ");
 		csvHeader.Append("Total Time, ");
-		csvHeader.Append("Total Time ratio to Vanilla, ");
 		Console.WriteLine(csvHeader.ToString());
 		
 		// spawn instance tasks
@@ -105,7 +105,7 @@ public class CorrectnessBenchmark
 								dnnfTime = ExtractC2dCompileTime(timerMatch);
 								Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} {x}");
 							}
-							else if ((timerMatch = s_DnnfTimePattern.Match(x)).Success)
+							else if ((timerMatch = s_CompletionTimePattern.Match(x)).Success)
 							{
 								totalTime = double.Parse(timerMatch.Groups["ms"].Value) / 1000;
 								Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} {x}");
@@ -151,18 +151,17 @@ public class CorrectnessBenchmark
 							await baselineTasksByFile[cnfPath];
 							
 							Utils.DataBuilder dataBuilder = new();
-							// TODO: use string builder instead of full line
 							dataBuilder.Append(solver);
 							dataBuilder.Append(Path.GetFileName(cnfPath));
+							dataBuilder.Append(dnnfInfo?.Length * 1.0 / baselineNnfSize[cnfPath]);
+							dataBuilder.Append((dnnfTime + dtreeTime) / baselineCompileTime[cnfPath]);
+							dataBuilder.Append(totalTime / baselineTotalTime[cnfPath]);
 							dataBuilder.Append(clean == "clean" ? "Subsuming" : "All");
 							dataBuilder.Append(finished? "Finished" : "Timeout");
 							dataBuilder.Append(dnnfInfo?.Length);
-							dataBuilder.Append(dnnfInfo?.Length * 1.0 / baselineNnfSize[cnfPath]);
 							dataBuilder.Append(dtreeTime);
 							dataBuilder.Append(dnnfTime + dtreeTime);
-							dataBuilder.Append((dnnfTime + dtreeTime) / baselineCompileTime[cnfPath]);
 							dataBuilder.Append(totalTime);
-							dataBuilder.Append(totalTime / baselineTotalTime[cnfPath]);
 							
 							if (finished && myCount != baselineModelCounts[cnfPath]) 
 							{
@@ -189,7 +188,7 @@ public class CorrectnessBenchmark
 	// lang=regex
 	static Regex s_ModelCountPattern = new(@"Counting...(?<count>\d+) models / (?<time>\d+\.\d+)s");
 	static Regex s_DtreeTimePattern = new(@"\[timer\] dtree: (?<ms>.+)");
-	static Regex s_DnnfTimePattern = new(@"\[timer\] completion: (?<ms>.+)");
+	static Regex s_CompletionTimePattern = new(@"\[timer\] completion: (?<ms>.+)");
 	static Regex s_C2dTotalTimePattern = new(@"Total Time: (?<sec>.+)s");
 	static Regex s_C2dCompileTimePattern = new(@"Compile Time: (?<ctime>.+)s / Pre-Processing: (?<pretime>.+)s / Post-Processing: (?<posttime>.+)s");
 
