@@ -6,6 +6,9 @@ namespace JT_2_DT.ExecutionModes;
 
 public class CorrectnessBenchmark
 {
+	static Regex s_DtreeTimePattern = new(@"\[timer\] dtree: (?<ms>.+)");
+	static Regex s_CompletionTimePattern = new(@"\[timer\] completion: (?<ms>.+)");
+	
 	public static void Run()
 	{
 		List<string> cnfFiles = LoadBenchmarks();
@@ -39,18 +42,21 @@ public class CorrectnessBenchmark
 		Dictionary<string, double> baselineTotalTime = new();
 		Dictionary<string, double> baselineCompileTime = new();
 		Dictionary<string, long> baselineNnfSize = new();
+		Dictionary<string, int> baselineWidth = new();
 		foreach (string file in cnfFiles)
 		{
 			baselineModelCounts[file] = "0";
+			baselineTotalTime[file] = 0;
 			baselineCompileTime[file] = 0;
 			baselineNnfSize[file] = 0;
+			baselineWidth[file] = 0;
 		}
 
 		// get baseline
 		Dictionary<string, Task> baselineTasksByFile = new();
 		foreach (string cnfFile in cnfFiles)
 		{
-			baselineTasksByFile[cnfFile] = RunBaseline(cnfFile, baselineModelCounts, baselineTotalTime, baselineCompileTime, baselineNnfSize);
+			baselineTasksByFile[cnfFile] = RunBaseline(cnfFile, baselineModelCounts, baselineTotalTime, baselineCompileTime, baselineNnfSize, baselineWidth);
 		}
 
 		// csv header		
@@ -60,12 +66,16 @@ public class CorrectnessBenchmark
 		csvHeader.Append("NNF Size Ratio to Vanilla, ");
 		csvHeader.Append("DNNF Compilation Time Ratio to Vanilla, ");
 		csvHeader.Append("Total Time Ratio to Vanilla, ");
+		csvHeader.Append("Dtree Width, ");
+		csvHeader.Append("Dtree width vanilla, ");
 		csvHeader.Append("Dtree Mode, ");
 		csvHeader.Append("Completion, ");
 		csvHeader.Append("NNF Size, ");
 		csvHeader.Append("Dtree Compilation Time, ");
 		csvHeader.Append("DNNF Compilation Time, ");
+		csvHeader.Append("DNNF Compilation Time Vanilla, ");
 		csvHeader.Append("Total Time, ");
+		csvHeader.Append("Total Time Vanilla, ");
 		Console.WriteLine(csvHeader.ToString());
 		
 		// spawn instance tasks
@@ -79,37 +89,64 @@ public class CorrectnessBenchmark
 					Task instanceTask = Task.Run(async () =>
 					{
 						// configure the logger
-						string myCount = string.Empty;
 						double dtreeTime = 0;
-						double dnnfTime = 0;
-						double totalTime = 0;
-						
+						double completionTime = 0;
+						Utils.C2dLogInterpreter interpreter = new();
+												
 						// configure logger
 						Logger logger = new((x) =>
-						{
-							ModelCountResults? result = FilterModelCount(x);
-							if (result != null)
+						{							
+							Match match;
+							bool shouldLog = false;
+							
+							if ((match = s_DtreeTimePattern.Match(x)).Success) 
 							{
-								myCount = result.Count;
-								return;
+								dtreeTime = double.Parse(match.Groups["ms"].Value) / 1000;
 							}
+							else if ((match = s_CompletionTimePattern.Match(x)).Success) 
+							{
+								completionTime = double.Parse(match.Groups["ms"].Value) / 1000;
+							}
+							else if (x.Length > 0 && x[0] != '[') 
+							{
+								shouldLog = interpreter.ProcessLog(x);
+							}
+							
+							if (match.Success || shouldLog) 
+							{
+								Console.Error.WriteLine($"{solver}.{clean}.{Path.GetFileName(cnfPath)} {x}");
+							}
+							
+							// ModelCountResults? result = FilterModelCount(x);
+							// if (result != null)
+							// {
+							// 	myCount = result.Count;
+							// 	return;
+							// }
 
-							Match timerMatch;
-							if ((timerMatch = s_DtreeTimePattern.Match(x)).Success)
-							{
-								dtreeTime = double.Parse(timerMatch.Groups["ms"].Value) / 1000;
-								Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} {x}");
-							}
-							else if ((timerMatch = s_C2dCompileTimePattern.Match(x)).Success) 
-							{
-								dnnfTime = ExtractC2dCompileTime(timerMatch);
-								Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} {x}");
-							}
-							else if ((timerMatch = s_CompletionTimePattern.Match(x)).Success)
-							{
-								totalTime = double.Parse(timerMatch.Groups["ms"].Value) / 1000;
-								Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} {x}");
-							}
+							// Match match;
+							// if ((match = s_DtreeTimePattern.Match(x)).Success)
+							// {
+							// 	dtreeTime = double.Parse(match.Groups["ms"].Value) / 1000;
+							// }
+							// else if ((match = s_C2dCompileTimePattern.Match(x)).Success) 
+							// {
+							// 	c2dCompileTime = ExtractC2dCompileTime(match) - c2dTimer.Elapsed.TotalSeconds;
+							// }
+							// else if ((match = s_CompletionTimePattern.Match(x)).Success)
+							// {
+							// 	totalTime = double.Parse(match.Groups["ms"].Value) / 1000;
+							// }
+							// else if ((match = s_C2dWidthPattern.Match(x)).Success) 
+							// {
+							// 	width = int.Parse(match.Groups["cluster"].Value) - 1;
+							// 	c2dTimer.Stop();
+							// }
+							
+							// if (match.Success) 
+							// {
+							// 	Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} {x}");
+							// }
 						});
 
 						// prepare to get stats from dnnf
@@ -145,6 +182,7 @@ public class CorrectnessBenchmark
 						catch (Exception e) 
 						{
 							Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} unknown error, {e}");
+							throw;
 						}
 						finally
 						{
@@ -154,16 +192,20 @@ public class CorrectnessBenchmark
 							dataBuilder.Append(solver);
 							dataBuilder.Append(Path.GetFileName(cnfPath));
 							dataBuilder.Append(dnnfInfo?.Length * 1.0 / baselineNnfSize[cnfPath]);
-							dataBuilder.Append((dnnfTime + dtreeTime) / baselineCompileTime[cnfPath]);
-							dataBuilder.Append(totalTime / baselineTotalTime[cnfPath]);
+							dataBuilder.Append(interpreter.CompileTime / baselineCompileTime[cnfPath]);
+							dataBuilder.Append(completionTime / baselineTotalTime[cnfPath]);
+							dataBuilder.Append(interpreter.Width);
+							dataBuilder.Append(baselineWidth[cnfPath]);
 							dataBuilder.Append(clean == "clean" ? "Subsuming" : "All");
 							dataBuilder.Append(finished? "Finished" : "Timeout");
 							dataBuilder.Append(dnnfInfo?.Length);
 							dataBuilder.Append(dtreeTime);
-							dataBuilder.Append(dnnfTime + dtreeTime);
-							dataBuilder.Append(totalTime);
+							dataBuilder.Append(interpreter.CompileTime);
+							dataBuilder.Append(baselineCompileTime[cnfPath]);
+							dataBuilder.Append(completionTime);
+							dataBuilder.Append(baselineTotalTime[cnfPath]);
 							
-							if (finished && myCount != baselineModelCounts[cnfPath]) 
+							if (finished && interpreter.ModelCount != baselineModelCounts[cnfPath]) 
 							{
 								dataBuilder.Append("incorrect");
 							}
@@ -185,33 +227,31 @@ public class CorrectnessBenchmark
 		Console.Error.WriteLine("done");
 	}
 
-	// lang=regex
-	static Regex s_ModelCountPattern = new(@"Counting...(?<count>\d+) models / (?<time>\d+\.\d+)s");
-	static Regex s_DtreeTimePattern = new(@"\[timer\] dtree: (?<ms>.+)");
-	static Regex s_CompletionTimePattern = new(@"\[timer\] completion: (?<ms>.+)");
-	static Regex s_C2dTotalTimePattern = new(@"Total Time: (?<sec>.+)s");
-	static Regex s_C2dCompileTimePattern = new(@"Compile Time: (?<ctime>.+)s / Pre-Processing: (?<pretime>.+)s / Post-Processing: (?<posttime>.+)s");
+	// static Regex s_ModelCountPattern = new(@"Counting...(?<count>\d+) models / (?<time>\d+\.\d+)s");
+	// static Regex s_C2dTotalTimePattern = new(@"Total Time: (?<sec>.+)s");
+	// static Regex s_C2dCompileTimePattern = new(@"Compile Time: (?<ctime>.+)s / Pre-Processing: (?<pretime>.+)s / Post-Processing: (?<posttime>.+)s");
+	// static Regex s_C2dWidthPattern = new(@"Max Cluster=(?<cluster>\d+)");
 
-	private class ModelCountResults
-	{
-		public string Count { get; init; } = string.Empty;
-		public string Time { get; init; } = string.Empty;
-	}
+	// private class ModelCountResults
+	// {
+	// 	public string Count { get; init; } = string.Empty;
+	// 	public string Time { get; init; } = string.Empty;
+	// }
 
-	private static ModelCountResults? FilterModelCount(string line)
-	{
-		Match modelCountMatch = s_ModelCountPattern.Match(line);
-		if (!modelCountMatch.Success)
-		{
-			return null;
-		}
+	// private static ModelCountResults? FilterModelCount(string line)
+	// {
+	// 	Match modelCountMatch = s_ModelCountPattern.Match(line);
+	// 	if (!modelCountMatch.Success)
+	// 	{
+	// 		return null;
+	// 	}
 
-		return new ModelCountResults
-		{
-			Count = modelCountMatch.Groups["count"].Value,
-			Time = modelCountMatch.Groups["time"].Value
-		};
-	}
+	// 	return new ModelCountResults
+	// 	{
+	// 		Count = modelCountMatch.Groups["count"].Value,
+	// 		Time = modelCountMatch.Groups["time"].Value
+	// 	};
+	// }
 	
 	private static List<string> LoadBenchmarks() 
 	{
@@ -233,7 +273,12 @@ public class CorrectnessBenchmark
 		return cnfFiles;
 	}
 	
-	private static Task RunBaseline(string cnfFile, Dictionary<string, string> baselineModelCounts, Dictionary<string, double> baselineTotalTime, Dictionary<string, double> baselineCompileTime, Dictionary<string, long> baselineNnfSize) 
+	private static Task RunBaseline(
+		string cnfFile, Dictionary<string, string> baselineModelCounts, 
+		Dictionary<string, double> baselineTotalTime, 
+		Dictionary<string, double> baselineCompileTime, 
+		Dictionary<string, long> baselineNnfSize,
+		Dictionary<string, int> baselineWidth) 
 		=> Task.Run(async () =>
 	{
 		using Utils.TempFileAgent tempCnf = new();
@@ -249,31 +294,49 @@ public class CorrectnessBenchmark
 		c2dInstance.StartInfo.Arguments = $"-in {cnfPath} -count -smooth_all -reduce";
 		c2dInstance.StartInfo.RedirectStandardOutput = true;
 		c2dInstance.Start();
+		
+		// Stopwatch timer = Stopwatch.StartNew();
+		// double c2dDtreeCompTime = 0;
+		
+		Utils.C2dLogInterpreter interpreter = new();
 
 		string? c2dOutputLine = string.Empty;
 		while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null)
 		{
-			ModelCountResults? result = FilterModelCount(c2dOutputLine);
-			if (result != null)
-			{
-				baselineModelCounts[cnfFile] = result.Count;
-			}
-			else
-			{
-				Match c2dTimeMatch = s_C2dTotalTimePattern.Match(c2dOutputLine);
-				Match c2dCompileTimeMatch = s_C2dCompileTimePattern.Match(c2dOutputLine);
-				if (c2dTimeMatch.Success)
-				{
-					baselineTotalTime[cnfFile] = double.Parse(c2dTimeMatch.Groups["sec"].Value);
-				}
-				else if (c2dCompileTimeMatch.Success) 
-				{
-					baselineCompileTime[cnfFile] = ExtractC2dCompileTime(c2dCompileTimeMatch);
-				}
-			}
+			_ = interpreter.ProcessLog(c2dOutputLine);
+			
+			// ModelCountResults? result = FilterModelCount(c2dOutputLine);
+			// if (result != null)
+			// {
+			// 	baselineModelCounts[cnfFile] = result.Count;
+			// }
+			// else
+			// {
+			// 	Match match;
+			// 	if ((match = s_C2dTotalTimePattern.Match(c2dOutputLine)).Success)
+			// 	{
+			// 		baselineTotalTime[cnfFile] = double.Parse(match.Groups["sec"].Value);
+			// 	}
+			// 	else if ((match = s_C2dCompileTimePattern.Match(c2dOutputLine)).Success) 
+			// 	{
+			// 		baselineCompileTime[cnfFile] = ExtractC2dCompileTime(match) - c2dDtreeCompTime;
+			// 	}
+			// 	else if ((match = s_C2dWidthPattern.Match(c2dOutputLine)).Success) 
+			// 	{
+			// 		baselineWidth[cnfFile] = int.Parse(match.Groups["cluster"].Value);
+			// 		timer.Stop();
+			// 		c2dDtreeCompTime = timer.Elapsed.TotalSeconds;
+			// 	}
+			// }
 		}
 
 		c2dInstance.WaitForExit();
+		
+		baselineModelCounts[cnfFile] = interpreter.ModelCount;
+		baselineCompileTime[cnfFile] = interpreter.CompileTime;
+		baselineTotalTime[cnfFile] = interpreter.TotalTime;
+		baselineWidth[cnfFile] = interpreter.Width;
+		
 		if (File.Exists(cnfPath + ".nnf")) 
 		{
 			FileInfo dnnfInfo;
