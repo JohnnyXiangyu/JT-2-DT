@@ -119,6 +119,6 @@ public class FullPipeline
 				logger.LogInformation(c2dOutputLine);
 			}
 		}
-		logger.LogInformation($"[timer] dnnf: {sharedTimer.Elapsed.TotalMilliseconds}");
+		logger.LogInformation($"[timer] completion: {sharedTimer.Elapsed.TotalMilliseconds}");
 	}
 }
