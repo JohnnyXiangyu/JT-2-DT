@@ -7,5 +7,6 @@ benchmark-build: JT-2-DT.csproj
 	cp -r external_executables Benchmark_Build/
 
 benchmark: benchmark-build 
-	./Benchmark_Build/JT-2-DT --benchmark c2d 1> Benchmark_Build/bench_results.csv 2> Benchmark_Build/bench_log.log 
+	./Benchmark_Build/JT-2-DT --benchmark MC2021_track1-mc_public 1> Benchmark_Build/bench_results_2021.csv
+	./Benchmark_Build/JT-2-DT --benchmark MC2022_track1-mc_public 1> Benchmark_Build/bench_results_2022.csv
 	
