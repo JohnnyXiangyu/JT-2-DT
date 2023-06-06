@@ -4,7 +4,7 @@ using JT_2_DT.Utils;
 
 if (args.Length == 1 && args[0] == "--benchmark") 
 {
-	CorrectnessBenchmark.Run();
+	new CorrectnessBenchmark().Run();
 }
 else 
 {
