@@ -16,6 +16,7 @@ public class CorrectnessBenchmark
 	Dictionary<string, long> _baselineNnfSize = new();
 	Dictionary<string, int> _baselineWidth = new();
 	Dictionary<string, Task> _baselineTasksByFile = new();
+	Dictionary<string, bool> _baselineSuccess = new();
 
 	IEnumerable<string> _benchMarkFolders;
 
@@ -60,17 +61,10 @@ public class CorrectnessBenchmark
 			"clean",
 			"dirty"
 		};
-		
-		foreach (var cnfFiles in LoadBenchmarks()) 
-		{
-			Console.WriteLine(cnfFiles.Count);
-		}
-		
-		return;
 
 		foreach (var cnfFiles in LoadBenchmarks())
 		{
-			Console.Error.WriteLine("loaded all benchmarks:");
+			Console.Error.WriteLine("next benchmarks:");
 			foreach (string file in cnfFiles)
 			{
 				Console.Error.Write("    ");
@@ -82,10 +76,11 @@ public class CorrectnessBenchmark
 			foreach (string file in cnfFiles)
 			{
 				_baselineModelCounts[file] = "0";
-				_baselineTotalTime[file] = 0;
-				_baselineCompileTime[file] = 0;
-				_baselineNnfSize[file] = 0;
+				_baselineTotalTime[file] = double.MaxValue;
+				_baselineCompileTime[file] = double.MaxValue;
+				_baselineNnfSize[file] = int.MaxValue;
 				_baselineWidth[file] = 0;
+				_baselineSuccess[file] = true;
 			}
 
 			// get baseline
@@ -109,6 +104,7 @@ public class CorrectnessBenchmark
 			}
 
 			Task.WaitAll(instanceTasks.ToArray());
+			Console.Error.WriteLine("batch done \n");
 		}
 
 		Console.Error.WriteLine("done");
@@ -145,7 +141,7 @@ public class CorrectnessBenchmark
 		}
 	}
 
-	private async Task RunBaseline(string cnfFile)
+	private Task RunBaseline(string cnfFile) => Task.Run(async ()=>
 	{
 		using Utils.TempFileAgent tempCnf = new();
 		string cnfPath = tempCnf.TempFilePath;
@@ -169,7 +165,13 @@ public class CorrectnessBenchmark
 			_ = interpreter.ProcessLog(c2dOutputLine);
 		}
 
-		c2dInstance.WaitForExit();
+		bool success = c2dInstance.WaitForExit(Defines.BaselineTimeout);
+		if (!success)
+		{
+			c2dInstance.Kill();
+			_baselineSuccess[cnfFile] = false;
+
+		}
 
 		_baselineModelCounts[cnfFile] = interpreter.ModelCount;
 		_baselineCompileTime[cnfFile] = interpreter.CompileTime;
@@ -184,10 +186,18 @@ public class CorrectnessBenchmark
 			File.Delete(cnfPath + ".nnf");
 		}
 
-		Console.Error.WriteLine($"baseline finished: {cnfFile}");
-	}
+		if (_baselineSuccess[cnfFile])
+		{
+			Console.Error.WriteLine($"baseline finished: {cnfFile}");
+		}
+		else
+		{
+			Console.Error.WriteLine($"benchmark failed: {cnfPath}");
+		}
+	});
 
-	private async Task RunInstance(string solver, string clean, string cnfPath)
+	private Task RunInstance(string solver, string clean, string cnfPath)
+		=> Task.Run(async () =>
 	{
 		// configure the logger
 		double dtreeTime = 0;
@@ -213,7 +223,7 @@ public class CorrectnessBenchmark
 				shouldLog = interpreter.ProcessLog(x);
 			}
 
-			if (match.Success || shouldLog)
+			if (match.Success || shouldLog || (x.Length > 0 && x[0] == '['))
 			{
 				Console.Error.WriteLine($"{solver}.{clean}.{Path.GetFileName(cnfPath)} {x}");
 			}
@@ -276,7 +286,11 @@ public class CorrectnessBenchmark
 			dataBuilder.Append(completionTime);
 			dataBuilder.Append(_baselineTotalTime[cnfPath]);
 
-			if (finished && interpreter.ModelCount != _baselineModelCounts[cnfPath])
+			if (finished && !_baselineSuccess[cnfPath])
+			{
+				dataBuilder.Append("baseline timeout");
+			}
+			else if (finished && interpreter.ModelCount != _baselineModelCounts[cnfPath])
 			{
 				dataBuilder.Append("incorrect");
 			}
@@ -288,7 +302,7 @@ public class CorrectnessBenchmark
 				File.Delete($"{tempCnf.TempFilePath}.nnf");
 			}
 		}
-	}
+	});
 
 	private double ExtractC2dCompileTime(Match match)
 	{

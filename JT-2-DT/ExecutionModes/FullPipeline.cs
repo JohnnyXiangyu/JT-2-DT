@@ -5,7 +5,7 @@ namespace JT_2_DT.ExecutionModes;
 
 public class FullPipeline
 {
-	public static void Run(string[] args, Logger logger, int timeout = -1)
+	public static void Run(string[] args, Logger logger)
 	{
 		Stopwatch sharedTimer = Stopwatch.StartNew();
 		

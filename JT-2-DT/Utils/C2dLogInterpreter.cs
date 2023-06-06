@@ -5,10 +5,10 @@ namespace JT_2_DT.Utils;
 
 public class C2dLogInterpreter 
 {
-	public double CompileTime = 0;
-	public double TotalTime = 0;
-	public string ModelCount = "0";
-	public double ModelCountTime = 0;
+	public double CompileTime = double.MaxValue;
+	public double TotalTime = double.MaxValue;
+	public string ModelCount = "undefined";
+	public double ModelCountTime = double.MaxValue;
 	public int Width = 0;
 	
 	static Regex s_ModelCountPattern = new(@"Counting...(?<count>\d+) models / (?<time>\d+\.\d+)s");
