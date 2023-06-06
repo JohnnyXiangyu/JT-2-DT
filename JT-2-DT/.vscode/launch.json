@@ -8,7 +8,7 @@
             "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--benchmark"],
+            "args": ["--benchmark", "c2d", "MC2021_track1-mc_public", "MC2022_track1-mc_public"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
