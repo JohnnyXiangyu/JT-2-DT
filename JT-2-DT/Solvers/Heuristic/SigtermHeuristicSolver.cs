@@ -13,6 +13,7 @@ public abstract class SigtermHeuristicSolver : ITwSolver
 		}
 		
 		using Process solver = GetSolver();
+		solver.StartInfo.UseShellExecute = false;
 		solver.StartInfo.RedirectStandardInput = true;
 		solver.StartInfo.RedirectStandardOutput = true;
 		solver.StartInfo.RedirectStandardError = true;
