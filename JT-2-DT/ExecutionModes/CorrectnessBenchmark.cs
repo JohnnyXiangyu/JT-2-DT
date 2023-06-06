@@ -157,20 +157,19 @@ public class CorrectnessBenchmark
 		c2dInstance.StartInfo.RedirectStandardOutput = true;
 		c2dInstance.Start();
 
-		Utils.C2dLogInterpreter interpreter = new();
-
-		string? c2dOutputLine = string.Empty;
-		while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null)
-		{
-			_ = interpreter.ProcessLog(c2dOutputLine);
-		}
-
 		bool success = c2dInstance.WaitForExit(Defines.BaselineTimeout);
 		if (!success)
 		{
 			c2dInstance.Kill();
 			_baselineSuccess[cnfFile] = false;
 
+		}
+		
+		Utils.C2dLogInterpreter interpreter = new();
+		string? c2dOutputLine = string.Empty;
+		while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null)
+		{
+			_ = interpreter.ProcessLog(c2dOutputLine);
 		}
 
 		_baselineModelCounts[cnfFile] = interpreter.ModelCount;
