@@ -17,9 +17,9 @@ public class C2dLogInterpreter
 	static Regex s_C2dWidthPattern = new(@"Max Cluster=(?<cluster>\d+)");
 		
 	private Stopwatch timer = new();
-	
+		
 	public bool ProcessLog(string x) 
-	{
+	{		
 		Match match;
 		if ((match = s_C2dWidthPattern.Match(x)).Success) 
 		{
@@ -47,4 +47,13 @@ public class C2dLogInterpreter
 		
 		return true;
 	}
+	
+	public Task Reader(Process c2dInstance) => Task.Run(() =>
+	{
+		string? c2dOutputLine = null;
+		while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null)
+		{
+			_ = ProcessLog(c2dOutputLine);
+		}
+	});
 }

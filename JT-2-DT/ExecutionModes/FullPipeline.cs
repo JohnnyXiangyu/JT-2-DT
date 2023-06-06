@@ -5,7 +5,7 @@ namespace JT_2_DT.ExecutionModes;
 
 public class FullPipeline
 {
-	public static void Run(string[] args, Logger logger)
+	public static async void Run(string[] args, Logger logger)
 	{
 		Stopwatch sharedTimer = Stopwatch.StartNew();
 		
@@ -106,18 +106,22 @@ public class FullPipeline
 			c2dInstance.StartInfo.RedirectStandardOutput = true;
 			c2dInstance.Start();
 			
-			c2dInstance.WaitForExit(Defines.C2dTimeout);
-			if (!c2dInstance.HasExited) 
+			Task readerTask = Task.Run(() => 
+			{
+				string? c2dOutputLine;
+				while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null) 
+				{
+					logger.LogInformation(c2dOutputLine);
+				}
+			});
+			
+			if (!c2dInstance.WaitForExit(Defines.C2dTimeout)) 
 			{
 				c2dInstance.Kill();
 				throw new TimeoutException($"c2d didn't finish within {Defines.C2dTimeout} ms");
 			}
 			
-			string? c2dOutputLine;
-			while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null) 
-			{
-				logger.LogInformation(c2dOutputLine);
-			}
+			await readerTask;
 		}
 		logger.LogInformation($"[timer] completion: {sharedTimer.Elapsed.TotalSeconds}");
 	}

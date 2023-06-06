@@ -45,6 +45,8 @@ public class CorrectnessBenchmark
 		csvHeader.Append("DNNF Compilation Time Vanilla, ");
 		csvHeader.Append("Total Time, ");
 		csvHeader.Append("Total Time Vanilla, ");
+		csvHeader.Append("Model Count, ");
+		csvHeader.Append("Model Count vanilla, ");
 		Console.WriteLine(csvHeader.ToString());
 
 		string[] solvers =
@@ -53,7 +55,7 @@ public class CorrectnessBenchmark
 			"flowcutter",
 			// "htd",
 			"tamaki2017-exact",
-			"tdlib-exact",
+			// "tdlib-exact",
 		};
 
 		string[] cleanness =
@@ -157,20 +159,17 @@ public class CorrectnessBenchmark
 		c2dInstance.StartInfo.RedirectStandardOutput = true;
 		c2dInstance.Start();
 
+		Utils.C2dLogInterpreter interpreter = new();
+		Task readerTask = interpreter.Reader(c2dInstance);
+
 		bool success = c2dInstance.WaitForExit(Defines.BaselineTimeout);
 		if (!success)
 		{
 			c2dInstance.Kill();
 			_baselineSuccess[cnfFile] = false;
-
 		}
 		
-		Utils.C2dLogInterpreter interpreter = new();
-		string? c2dOutputLine = string.Empty;
-		while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null)
-		{
-			_ = interpreter.ProcessLog(c2dOutputLine);
-		}
+		await readerTask;
 
 		_baselineModelCounts[cnfFile] = interpreter.ModelCount;
 		_baselineCompileTime[cnfFile] = interpreter.CompileTime;
@@ -284,6 +283,8 @@ public class CorrectnessBenchmark
 			dataBuilder.Append(_baselineCompileTime[cnfPath]);
 			dataBuilder.Append(completionTime);
 			dataBuilder.Append(_baselineTotalTime[cnfPath]);
+			dataBuilder.Append(interpreter.ModelCount);
+			dataBuilder.Append(_baselineModelCounts[cnfPath]);
 
 			if (finished && !_baselineSuccess[cnfPath])
 			{
