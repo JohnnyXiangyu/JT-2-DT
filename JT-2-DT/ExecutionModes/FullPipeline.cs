@@ -49,13 +49,14 @@ public class FullPipeline
 
 		// moralization
 		Cnf formula = new(cnfPath);
+		logger.LogInformation($"[timer] cnf: {sharedTimer.Elapsed.TotalSeconds}");
 		MoralGraph graph = new(formula);
 		logger.LogInformation($"[timer] moral graph: {sharedTimer.Elapsed.TotalSeconds}");
 
 		// if mode is moral graph, break here
 		if (mode == "--moral-graph")
 		{
-			logger.LogInformation(graph.Serialize());
+			// Console.Write(graph.Serialize());
 			return;
 		}
 
