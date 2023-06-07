@@ -15,6 +15,19 @@
             "stopAtEntry": false
         },
         {
+            "name": "Baseline",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Debug",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
+            "args": ["--baseline", "sample"],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Rolling",
             "type": "coreclr",
             "request": "launch",

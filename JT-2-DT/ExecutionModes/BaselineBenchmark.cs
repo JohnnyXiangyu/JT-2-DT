@@ -113,16 +113,17 @@ public class BaselineBenchmark
 		}
 		else
 		{
-			Console.Error.WriteLine($"benchmark failed: {cnfPath}");
+			Console.Error.WriteLine($"benchmark failed: {cnfFile}");
 		}
 		
 		Utils.DataBuilder dataBuilder = new();
-		dataBuilder.Append(Path.GetFileName(cnfPath));
-		dataBuilder.Append(_baselineSuccess[cnfPath]);
-		dataBuilder.Append(_baselineWidth[cnfPath]);
-		dataBuilder.Append(_baselineNnfSize[cnfPath]);
-		dataBuilder.Append(_baselineCompileTime[cnfPath]);
-		dataBuilder.Append(_baselineTotalTime[cnfPath]);
-		dataBuilder.Append(_baselineModelCounts[cnfPath]);
+		dataBuilder.Append(Path.GetFileName(cnfFile));
+		dataBuilder.Append(_baselineSuccess[cnfFile]);
+		dataBuilder.Append(_baselineWidth[cnfFile]);
+		dataBuilder.Append(_baselineNnfSize[cnfFile]);
+		dataBuilder.Append(_baselineCompileTime[cnfFile]);
+		dataBuilder.Append(_baselineTotalTime[cnfFile]);
+		dataBuilder.Append(_baselineModelCounts[cnfFile]);
+		Console.WriteLine(dataBuilder.ToString());
 	});
 }

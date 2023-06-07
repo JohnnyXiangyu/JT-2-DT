@@ -11,6 +11,15 @@ if (args.Length >= 1 && args[0] == "--benchmark")
 	}
 	new CorrectnessBenchmark(folders).Run();
 }
+else if (args.Length >= 1 && args[0] == "--baseline") 
+{
+	List<string> folders = new();
+	for (int i = 1; i < args.Length; i ++) 
+	{
+		folders.Add(args[i]);
+	}
+	new BaselineBenchmark(folders).Run();
+}
 else 
 {
 	try 
