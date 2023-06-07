@@ -31,7 +31,7 @@ public class BaselineBenchmark
 		csvHeader.Append("Model Count vanilla, ");
 		Console.WriteLine(csvHeader.ToString());
 		
-		Utils.BatchGenerator batcher = new(_benchMarkFolders, Defines.InstanceLimit);
+		Utils.BatchGenerator batcher = new(_benchMarkFolders, Defines.TotalJobLimit);
 	
 		foreach (var cnfFiles in batcher.LoadBenchmarks())
 		{
