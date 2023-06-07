@@ -264,10 +264,10 @@ public class CorrectnessBenchmark
 				}
 			});
 			
-			if (!dtreeGenerator.WaitForExit(Defines.DtreeTimeout)) 
+			if (!dtreeGenerator.WaitForExit(Defines.BaselineTimeout)) 
 			{
 				dtreeGenerator.Kill(true);
-				throw new TimeoutException($"dtree generation timeout after {Defines.DtreeTimeout}");
+				throw new TimeoutException($"dtree generation timeout after {Defines.BaselineTimeout}");
 			}
 			
 			await selfReaderTask;
