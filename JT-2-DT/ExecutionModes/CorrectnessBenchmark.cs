@@ -212,8 +212,8 @@ public class CorrectnessBenchmark
 		}
 		
 		// configure the logger
-		double dtreeTime = 0;
-		double completionTime = 0;
+		double dtreeTime = double.MaxValue;
+		double completionTime = double.MaxValue;
 		Utils.C2dLogInterpreter interpreter = new();
 
 		// run the main routine
@@ -341,7 +341,7 @@ public class CorrectnessBenchmark
 			dataBuilder.Append(interpreter.ModelCount);
 			dataBuilder.Append(_baselineModelCounts[cnfPath]);
 
-			if (finished && !_baselineSuccess[cnfPath])
+			if (finished && (!_baselineSuccess[cnfPath] || _baselineModelCounts[cnfPath] == "undefined"))
 			{
 				dataBuilder.Append("baseline timeout");
 			}

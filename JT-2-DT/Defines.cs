@@ -22,11 +22,11 @@ public static class Defines
 	
 	public const int HeuristicSolverTimeout = 5 * 60 * 1000;
 	public const int ExactSolverTimeout = 5 * 60 * 1000;
-	public const int DtreeTimeout = 10 * 60 * 1000;
-	public const int C2dTimeout = 25 * 60 * 1000;
-	public const int BaselineTimeout = 31 * 60 * 1000;
+	public const int DtreeTimeout = 15 * 60 * 1000;
+	public const int C2dTimeout = 15 * 60 * 1000;
+	public const int BaselineTimeout = 30 * 60 * 1000;
 	
-	public const int InstanceLimit = 8;
+	public const int InstanceLimit = 4;
 	
 	public static string? ExeDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 }
