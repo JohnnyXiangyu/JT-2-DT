@@ -51,8 +51,8 @@ public class CorrectnessBenchmark
 
 		string[] solvers =
 		{
-			"tamaki2017-heuristic",
-			"flowcutter",
+			//"tamaki2017-heuristic",
+			//"flowcutter",
 			// "htd",
 			"tamaki2017-exact",
 			// "tdlib-exact",
@@ -279,7 +279,8 @@ public class CorrectnessBenchmark
 			
 			Log("end dtree");
 			
-			// start c2d			
+			// start c2d
+			int renamingTime = Defines.BaselineTimeout - (int)Math.Floor(totalTimer.Elapsed.TotalSeconds);
 			string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
 			using (Process c2dInstance = new())
 			{
@@ -299,10 +300,10 @@ public class CorrectnessBenchmark
 					}
 				});
 				
-				if (!c2dInstance.WaitForExit(Defines.C2dTimeout)) 
+				if (!c2dInstance.WaitForExit(renamingTime)) 
 				{
 					c2dInstance.Kill();
-					throw new TimeoutException($"c2d didn't finish within {Defines.C2dTimeout} ms");
+					throw new TimeoutException($"c2d didn't finish within remaining {renamingTime} ms");
 				}
 				
 				readerTask.Wait();
