@@ -20,8 +20,8 @@ public static class Defines
 		}
 	}}
 	
-	public const int HeuristicSolverTimeout = 1 * 60 * 1000;
-	public const int ExactSolverTimeout = 1 * 60 * 1000;
+	public const int HeuristicSolverTimeout = 5 * 60 * 1000;
+	public const int ExactSolverTimeout = 5 * 60 * 1000;
 	public const int DtreeTimeout = 10 * 60 * 1000;
 	public const int C2dTimeout = 20 * 60 * 1000;
 	public const int BaselineTimeout = 30 * 60 * 1000;
