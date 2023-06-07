@@ -33,27 +33,27 @@ namespace JT_2_DT
                 int variable = i;
                 var newEdges = new HashSet<int>();
 
-                tasks[variable] = Task.Run(() =>
-                {
-                    foreach (IEnumerable<int> clause in _formula.Clauses)
-                    {
-                        if (clause.Any(x => x == variable))
-                        {
-                            foreach (int other in clause)
-                            {
-                                if (other > variable)
-                                {
-                                    newEdges.Add(other);
-                                }
-                            }
-                        }
-                    }
-                });
+                // tasks[variable] = Task.Run(() =>
+                // {
+				foreach (IEnumerable<int> clause in _formula.Clauses)
+				{
+					if (clause.Any(x => x == variable))
+					{
+						foreach (int other in clause)
+						{
+							if (other > variable)
+							{
+								newEdges.Add(other);
+							}
+						}
+					}
+				}
+                // });
 
                 AllEdgesBySmallVar.Add(newEdges);
             }
 
-            Task.WaitAll(tasks.ToArray());
+            //Task.WaitAll(tasks.ToArray());
         }
 
         public void OutputToFile(string outPath)

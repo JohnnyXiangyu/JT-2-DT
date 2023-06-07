@@ -21,7 +21,7 @@
             "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dnnf", "Examples/c2d/ais10.cnf", "--clean", "--tamaki2017-heursitic"],
+            "args": ["--dnnf", "Examples/c2d/lucas.cnf", "--clean", "--tamaki2017-exact"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
