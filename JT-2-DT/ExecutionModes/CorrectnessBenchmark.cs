@@ -10,14 +10,6 @@ public class CorrectnessBenchmark
 	static Regex s_CompletionTimePattern = new(@"\[timer\] completion: (?<ms>.+)");
 	// const string Mode = "--dnnf";
 
-	Dictionary<string, string> _baselineModelCounts = new();
-	Dictionary<string, double> _baselineTotalTime = new();
-	Dictionary<string, double> _baselineCompileTime = new();
-	Dictionary<string, long> _baselineNnfSize = new();
-	Dictionary<string, int> _baselineWidth = new();
-	Dictionary<string, Task> _baselineTasksByFile = new();
-	Dictionary<string, bool> _baselineSuccess = new();
-
 	IEnumerable<string> _benchMarkFolders;
 
 	public CorrectnessBenchmark(IEnumerable<string> folders)
@@ -51,10 +43,10 @@ public class CorrectnessBenchmark
 
 		string[] solvers =
 		{
-			//"tamaki2017-heuristic",
-			//"flowcutter",
+			"tamaki2017-heuristic",
+			"flowcutter",
 			// "htd",
-			"tamaki2017-exact",
+			// "tamaki2017-exact",
 			// "tdlib-exact",
 		};
 
@@ -63,8 +55,10 @@ public class CorrectnessBenchmark
 			"clean",
 			"dirty"
 		};
-
-		foreach (var cnfFiles in LoadBenchmarks())
+		
+		Utils.BatchGenerator batcher = new(_benchMarkFolders, Defines.InstanceLimit);
+	
+		foreach (var cnfFiles in batcher.LoadBenchmarks())
 		{
 			Console.Error.WriteLine("next benchmarks:");
 			foreach (string file in cnfFiles)
@@ -111,38 +105,7 @@ public class CorrectnessBenchmark
 
 		Console.Error.WriteLine("done");
 	}
-
-	private IEnumerable<List<string>> LoadBenchmarks()
-	{
-		List<string> cnfFiles = new();
-		foreach (string file in NextBenchmark())
-		{
-			if (cnfFiles.Count >= Defines.InstanceLimit)
-			{
-				yield return cnfFiles;
-				cnfFiles = new();
-			}
-
-			cnfFiles.Add(file);
-		}
-
-		yield return cnfFiles;
-	}
-
-	private IEnumerable<string> NextBenchmark()
-	{
-		foreach (string folder in _benchMarkFolders)
-		{
-			DirectoryInfo d = new DirectoryInfo(Path.Combine("Examples", folder));
-			FileInfo[] Files = d.GetFiles("*.cnf");
-
-			foreach (FileInfo file in Files)
-			{
-				yield return file.FullName;
-			}
-		}
-	}
-
+	
 	private Task RunBaseline(string cnfFile) => Task.Run(async ()=>
 	{
 		using Utils.TempFileAgent tempCnf = new();
