@@ -5,7 +5,7 @@ namespace JT_2_DT.ExecutionModes;
 
 public class FullPipeline
 {
-	public static async void Run(string[] args, Logger logger)
+	public static void Run(string[] args, Logger logger)
 	{
 		Stopwatch sharedTimer = Stopwatch.StartNew();
 		
@@ -121,7 +121,7 @@ public class FullPipeline
 				throw new TimeoutException($"c2d didn't finish within {Defines.C2dTimeout} ms");
 			}
 			
-			await readerTask;
+			readerTask.Wait();
 		}
 		logger.LogInformation($"[timer] completion: {sharedTimer.Elapsed.TotalSeconds}");
 	}

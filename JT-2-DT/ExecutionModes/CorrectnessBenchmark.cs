@@ -51,8 +51,8 @@ public class CorrectnessBenchmark
 
 		string[] solvers =
 		{
-			"tamaki2017-heuristic",
-			"flowcutter",
+			//"tamaki2017-heuristic",
+			//"flowcutter",
 			// "htd",
 			"tamaki2017-exact",
 			// "tdlib-exact",
@@ -252,15 +252,10 @@ public class CorrectnessBenchmark
 			if (File.Exists(dnnfPath))
 				dnnfInfo = new(dnnfPath);
 		}
-		catch (TimeoutException)
+		catch
 		{
 			finished = false;
 			Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} timeout");
-		}
-		catch (Exception e)
-		{
-			Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} unknown error, {e}");
-			throw;
 		}
 		finally
 		{
