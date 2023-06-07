@@ -26,7 +26,7 @@ public static class Defines
 	public const int C2dTimeout = 15 * 60 * 1000;
 	public const int BaselineTimeout = 30 * 60 * 1000;
 	
-	public const int InstanceLimit = 4;
+	public const int InstanceLimit = 8;
 	
 	public static string? ExeDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 }
