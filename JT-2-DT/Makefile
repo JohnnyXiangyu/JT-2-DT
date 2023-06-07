@@ -6,6 +6,9 @@ benchmark-build: JT-2-DT.csproj
 	cp -r Examples Benchmark_Build/
 	cp -r external_executables Benchmark_Build/
 
+small-benchmark: benchmark-build
+	-./Benchmark_Build/JT-2-DT --benchmark 2021_batch_1 1> results/2021_batch_1.csv 2> logs/2021_batch_1.log
+
 benchmark-2021: benchmark-build 
 	-./Benchmark_Build/JT-2-DT --benchmark 2021_batch_1 1> results/2021_batch_1.csv 2> logs/2021_batch_1.log
 	-./Benchmark_Build/JT-2-DT --benchmark 2021_batch_2 1> results/2021_batch_2.csv 2> logs/2021_batch_2.log
@@ -27,6 +30,7 @@ benchmark-2022: benchmark-build
 	-./Benchmark_Build/JT-2-DT --benchmark 2022_batch_8 1> results/2022_batch_8.csv 2> logs/2022_batch_8.log
 	-./Benchmark_Build/JT-2-DT --benchmark 2022_batch_9 1> results/2022_batch_9.csv 2> logs/2022_batch_9.log
 
+all-benchmark: benchmark-2021 benchmark-2022
 
 baseline-2021: benchmark-build 
 	-./Benchmark_Build/JT-2-DT --baseline 2021_batch_1 1> results/2021_baseline_batch_1.csv 2> logs/2021_baseline_batch_1.log
