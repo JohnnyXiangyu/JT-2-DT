@@ -221,15 +221,21 @@ public class CorrectnessBenchmark
 		{
 			Stopwatch totalTimer = Stopwatch.StartNew();
 			
+			void Log(string message) 
+			{
+				Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} {totalTimer.Elapsed.TotalSeconds} {message}");
+			}
+			
 			// start a new dtree generator instance
+			using Utils.TempFileAgent tempDtreeFile = new();
 			using Process dtreeGenerator = new();
 			dtreeGenerator.StartInfo.FileName = Path.Combine(Defines.ExeDirectory!, "JT-2-DT");
-			dtreeGenerator.StartInfo.Arguments = $"--dtree {tempCnf.TempFilePath} --{clean} --{solver}";
+			dtreeGenerator.StartInfo.Arguments = $"--dtree {tempCnf.TempFilePath} --{clean} --{solver} {tempDtreeFile.TempFilePath}";
 			dtreeGenerator.StartInfo.RedirectStandardError = true;
 			dtreeGenerator.StartInfo.RedirectStandardOutput = true;
 			dtreeGenerator.Start();
 			
-			Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} start dtree generation");
+			Log("start dtree");
 			
 			bool solverTimeout = false;	
 			
@@ -250,10 +256,6 @@ public class CorrectnessBenchmark
 					{
 						dtreeTime = double.Parse(match.Groups["ms"].Value);
 					}
-					else if ((match = s_CompletionTimePattern.Match(nextLine)).Success)
-					{
-						completionTime = double.Parse(match.Groups["ms"].Value);
-					}
 
 					if (match.Success)
 					{
@@ -262,22 +264,22 @@ public class CorrectnessBenchmark
 				}
 			});
 			
-			if (!dtreeGenerator.WaitForExit(Defines.DtreeTimeout) || solverTimeout) 
+			if (!dtreeGenerator.WaitForExit(Defines.DtreeTimeout)) 
 			{
 				dtreeGenerator.Kill(true);
-				throw new TimeoutException("dtree generation timeout");
+				throw new TimeoutException($"dtree generation timeout after {Defines.DtreeTimeout}");
 			}
 			
 			await selfReaderTask;
 			
-			// if it's not timeout, we can read dtree from stdout
-			using Utils.TempFileAgent tempDtreeFile = new();
-			using (FileStream dtreeFileStream = File.OpenWrite(tempDtreeFile.TempFilePath)) 
+			if (solverTimeout) 
 			{
-				dtreeGenerator.StandardOutput.BaseStream.CopyTo(dtreeFileStream);
+				throw new TimeoutException($"tree width solver timeout after {Defines.HeuristicSolverTimeout}");
 			}
 			
-			// start c2d
+			Log("end dtree");
+			
+			// start c2d			
 			string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
 			using (Process c2dInstance = new())
 			{
@@ -286,6 +288,8 @@ public class CorrectnessBenchmark
 				c2dInstance.StartInfo.RedirectStandardOutput = true;
 				c2dInstance.Start();
 				
+				Log("start c2d");
+					
 				Task readerTask = Task.Run(() => 
 				{
 					string? c2dOutputLine;
@@ -302,6 +306,8 @@ public class CorrectnessBenchmark
 				}
 				
 				readerTask.Wait();
+				
+				Log("end c2d");
 			}
 			
 			// take time

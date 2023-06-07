@@ -23,6 +23,7 @@ public class FullPipeline
 		bool useCleanBuild = false;
 		string mode = "--dnnf";
 		string solverName = String.Empty;
+		string dtFile = String.Empty;
 
 		// load from input or commandline
 		if (args.Length >= 1)
@@ -40,6 +41,10 @@ public class FullPipeline
 		if (args.Length >= 4) 
 		{
 			solverName = args[3];
+		}
+		if (args.Length >= 5) 
+		{
+			dtFile = args[4];
 		}
 
 		// moralization
@@ -93,20 +98,32 @@ public class FullPipeline
 		
 		// dtree compilation
 		Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);
-		logger.LogInformation($"[timer] dtree: {sharedTimer.Elapsed.TotalSeconds}");
 
 		// if we only want dtree
 		if (mode == "--dtree")
 		{
-			foreach (string line in dtree.SerializeAsDtree())
+			if (dtFile != string.Empty) 
 			{
-				Console.WriteLine(line);
+				File.WriteAllLines(dtFile, dtree.SerializeAsDtree());
 			}
+			else 
+			{
+				foreach (string line in dtree.SerializeAsDtree())
+				{
+					Console.WriteLine(line);
+				}
+			}
+			
+			logger.LogInformation($"[timer] dtree: {sharedTimer.Elapsed.TotalSeconds}");
 			return;
+		}
+		else 
+		{
+			File.WriteAllLines(tempDtreeFilename, dtree.SerializeAsDtree());
+			logger.LogInformation($"[timer] dtree: {sharedTimer.Elapsed.TotalSeconds}");
 		}
 
 		// c2d invocation
-		File.WriteAllLines(tempDtreeFilename, dtree.SerializeAsDtree());
 		string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
 		using (Process c2dInstance = new())
 		{
