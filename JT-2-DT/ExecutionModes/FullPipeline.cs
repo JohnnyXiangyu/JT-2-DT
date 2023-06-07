@@ -95,9 +95,11 @@ public class FullPipeline
 			logger.LogInformation("[solver] timeout!");
 			return;
 		}
+		logger.LogInformation($"[timer] solver-finish: {sharedTimer.Elapsed.TotalSeconds}");
 		
 		// dtree compilation
 		Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);
+		logger.LogInformation($"[timer] dtree-pregen: {sharedTimer.Elapsed.TotalSeconds}");
 
 		// if we only want dtree
 		if (mode == "--dtree")

@@ -48,3 +48,5 @@ baseline-2022: benchmark-build
 	-./Benchmark_Build/JT-2-DT --baseline 2022_batch_7 1> results/2022_baseline_batch_7.csv 2> logs/2022_baseline_batch_7.log
 	-./Benchmark_Build/JT-2-DT --baseline 2022_batch_8 1> results/2022_baseline_batch_8.csv 2> logs/2022_baseline_batch_8.log
 	-./Benchmark_Build/JT-2-DT --baseline 2022_batch_9 1> results/2022_baseline_batch_9.csv 2> logs/2022_baseline_batch_9.log
+
+all-baseline: baseline-2021 baseline-2022
