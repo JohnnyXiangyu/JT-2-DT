@@ -8,7 +8,7 @@ public class CorrectnessBenchmark
 {
 	static Regex s_DtreeTimePattern = new(@"\[timer\] dtree: (?<ms>.+)");
 	static Regex s_CompletionTimePattern = new(@"\[timer\] completion: (?<ms>.+)");
-	const string Mode = "--dnnf";
+	// const string Mode = "--dnnf";
 
 	Dictionary<string, string> _baselineModelCounts = new();
 	Dictionary<string, double> _baselineTotalTime = new();
@@ -197,36 +197,6 @@ public class CorrectnessBenchmark
 	private Task RunInstance(string solver, string clean, string cnfPath)
 		=> Task.Run(async () =>
 	{
-		// configure the logger
-		double dtreeTime = 0;
-		double completionTime = 0;
-		Utils.C2dLogInterpreter interpreter = new();
-
-		// configure logger
-		Logger logger = new((x) =>
-		{
-			Match match;
-			bool shouldLog = false;
-
-			if ((match = s_DtreeTimePattern.Match(x)).Success)
-			{
-				dtreeTime = double.Parse(match.Groups["ms"].Value);
-			}
-			else if ((match = s_CompletionTimePattern.Match(x)).Success)
-			{
-				completionTime = double.Parse(match.Groups["ms"].Value);
-			}
-			else if (x.Length > 0 && x[0] != '[')
-			{
-				shouldLog = interpreter.ProcessLog(x);
-			}
-
-			if (match.Success || shouldLog || (x.Length > 0 && x[0] == '['))
-			{
-				Console.Error.WriteLine($"{solver}.{clean}.{Path.GetFileName(cnfPath)} {x}");
-			}
-		});
-
 		// prepare to get stats from dnnf
 		FileInfo? dnnfInfo = null;
 		bool finished = true;
@@ -240,22 +210,112 @@ public class CorrectnessBenchmark
 		{
 			inCnf.CopyTo(outCnf);
 		}
+		
+		// configure the logger
+		double dtreeTime = 0;
+		double completionTime = 0;
+		Utils.C2dLogInterpreter interpreter = new();
 
 		// run the main routine
 		try
 		{
-			string[] args = { Mode, tempCnf.TempFilePath, "--" + clean, "--" + solver };
-			FullPipeline.Run(args, logger);
+			Stopwatch totalTimer = Stopwatch.StartNew();
+			
+			// start a new dtree generator instance
+			using Process dtreeGenerator = new();
+			dtreeGenerator.StartInfo.FileName = Path.Combine(Defines.ExeDirectory!, "JT-2-DT");
+			dtreeGenerator.StartInfo.Arguments = $"--dtree {tempCnf.TempFilePath} --{clean} --{solver}";
+			dtreeGenerator.StartInfo.RedirectStandardError = true;
+			dtreeGenerator.StartInfo.RedirectStandardOutput = true;
+			dtreeGenerator.Start();
+			
+			Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} start dtree generation");
+			
+			bool solverTimeout = false;	
+			
+			Task selfReaderTask = Task.Run(async () => 
+			{
+				string? nextLine = null;
+				while ((nextLine = await dtreeGenerator.StandardError.ReadLineAsync()) != null) 
+				{
+					if (nextLine == "[solver] timeout!") 
+					{
+						solverTimeout = true;
+						return;
+					}
+					
+					Match match;
+
+					if ((match = s_DtreeTimePattern.Match(nextLine)).Success)
+					{
+						dtreeTime = double.Parse(match.Groups["ms"].Value);
+					}
+					else if ((match = s_CompletionTimePattern.Match(nextLine)).Success)
+					{
+						completionTime = double.Parse(match.Groups["ms"].Value);
+					}
+
+					if (match.Success)
+					{
+						Console.Error.WriteLine($"{solver}.{clean}.{Path.GetFileName(cnfPath)} {nextLine}");
+					}
+				}
+			});
+			
+			if (!dtreeGenerator.WaitForExit(Defines.DtreeTimeout) || solverTimeout) 
+			{
+				dtreeGenerator.Kill(true);
+				throw new TimeoutException("dtree generation timeout");
+			}
+			
+			await selfReaderTask;
+			
+			// if it's not timeout, we can read dtree from stdout
+			using Utils.TempFileAgent tempDtreeFile = new();
+			using (FileStream dtreeFileStream = File.OpenWrite(tempDtreeFile.TempFilePath)) 
+			{
+				dtreeGenerator.StandardOutput.BaseStream.CopyTo(dtreeFileStream);
+			}
+			
+			// start c2d
+			string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
+			using (Process c2dInstance = new())
+			{
+				c2dInstance.StartInfo.FileName = c2dPath;
+				c2dInstance.StartInfo.Arguments = $"-in {tempCnf.TempFilePath} -dt_in {tempDtreeFile.TempFilePath} -count -smooth_all -reduce";
+				c2dInstance.StartInfo.RedirectStandardOutput = true;
+				c2dInstance.Start();
+				
+				Task readerTask = Task.Run(() => 
+				{
+					string? c2dOutputLine;
+					while ((c2dOutputLine = c2dInstance.StandardOutput.ReadLine()) != null) 
+					{
+						_ = interpreter.ProcessLog(c2dOutputLine);
+					}
+				});
+				
+				if (!c2dInstance.WaitForExit(Defines.C2dTimeout)) 
+				{
+					c2dInstance.Kill();
+					throw new TimeoutException($"c2d didn't finish within {Defines.C2dTimeout} ms");
+				}
+				
+				readerTask.Wait();
+			}
+			
+			// take time
+			completionTime = totalTimer.Elapsed.TotalSeconds;
 
 			// calculate dnnf size
 			string dnnfPath = $"{tempCnf.TempFilePath}.nnf";
 			if (File.Exists(dnnfPath))
 				dnnfInfo = new(dnnfPath);
 		}
-		catch
+		catch (Exception e)
 		{
 			finished = false;
-			Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} timeout");
+			Console.Error.WriteLine($"{solver}.{clean}.{cnfPath} {e.Message}");
 		}
 		finally
 		{

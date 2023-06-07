@@ -80,8 +80,17 @@ public class FullPipeline
 			solver = new JT_2_DT.Solvers.Heuristic.Tamaki2017();
 			break;
 		}
-		solver.Execute(tempGrFilename, tempTdFilename);
-
+		
+		try 
+		{
+			solver.Execute(tempGrFilename, tempTdFilename);
+		}
+		catch (TimeoutException) 
+		{
+			logger.LogInformation("[solver] timeout!");
+			return;
+		}
+		
 		// dtree compilation
 		Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);
 		logger.LogInformation($"[timer] dtree: {sharedTimer.Elapsed.TotalSeconds}");
@@ -91,7 +100,7 @@ public class FullPipeline
 		{
 			foreach (string line in dtree.SerializeAsDtree())
 			{
-				logger.LogInformation(line);
+				Console.WriteLine(line);
 			}
 			return;
 		}

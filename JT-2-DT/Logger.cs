@@ -17,7 +17,7 @@ public class Logger
 	
 	public static Logger ConsoleLogger() 
 	{
-		return new((x) => Console.WriteLine(x));
+		return new((x) => Console.Error.WriteLine(x));
 	}
 	
 	public void LogInformation(string entry) 
