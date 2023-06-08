@@ -477,7 +477,7 @@ namespace JT_2_DT
 			
 			void TryPushParent(int node)
 			{
-				IEnumerable<int> unvisitedNeighbours = _edges[node].Intersect(processedNodes);
+				IEnumerable<int> unvisitedNeighbours = _edges[node].Except(processedNodes);
 				
 				foreach (int neighbour in unvisitedNeighbours)
 				{
