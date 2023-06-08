@@ -19,7 +19,7 @@ namespace JT_2_DT
 		Dictionary<int, FamilyEquivalenceClass> _clauseToEqClass = new();
 		
 		Dictionary<int, int> _childernToParent = new();
-		Dictionary<int, List<int>> _parentToChildren = new();
+		Dictionary<int, HashSet<int>> _parentToChildren = new();
 
 		public Dtree(string filePath, IEnumerable<IEnumerable<int>> families, bool useCleanCompiler = false)
 		{
@@ -102,6 +102,48 @@ namespace JT_2_DT
 				}
 			}
 
+		}
+		
+		/// <summary>
+		/// Root the undirected tree.
+		/// </summary>
+		/// <param name="root">desired root node, -1 for random rooting</param>
+		private void RootTree(int root = -1) 
+		{
+			if (root == -1) 
+			{
+				Random rand = new();
+				do 
+				{
+					root = (int) rand.NextInt64(0, _nodeCount);
+				} while (Leaves.Contains(root));
+			}
+			
+			_rootByConvention = root;
+			HashSet<int> history = new();
+			Queue<(int, int)> pendingNodes = new();
+			pendingNodes.Enqueue((-1, root));
+			
+			while (pendingNodes.Any()) 
+			{
+				(int parent, int currentNode) = pendingNodes.Dequeue();
+				HashSet<int> neighbours = _edges[currentNode];
+				
+				_parentToChildren[currentNode] = new();
+				_childernToParent[currentNode] = parent;
+				
+				foreach (int neighbour in neighbours) 
+				{
+					if (neighbour == parent) 
+					{
+						continue;
+					}
+					
+					pendingNodes.Enqueue((currentNode, neighbour));
+					_parentToChildren[currentNode].Add(neighbour);
+					_childernToParent[neighbour] = currentNode;
+				}
+			}
 		}
 
 		/// <summary>
@@ -201,6 +243,9 @@ namespace JT_2_DT
 			
 			// finalize insertion by updating node count
 			_nodeCount += families.Count();
+			
+			// root the tree
+			RootTree();
 
 			// last step is to resolve the tree to ensure it's a full binary tree
 			_rootByConvention = ResolveAsBinaryTree();
@@ -276,6 +321,9 @@ namespace JT_2_DT
 
 			// finalize insertion by updating node count
 			_nodeCount += _familyEqClasses.Count;
+			
+			// root the tree
+			RootTree();
 
 			// last step is to resolve the tree to ensure it's a full binary tree
 			_rootByConvention = ResolveAsBinaryTree();
@@ -310,104 +358,46 @@ namespace JT_2_DT
 		private int ResolveAsBinaryTree()
 		{
 			// we know leaves will not change during any time when this is called
-			UniqueQueue<int> pendingNodes = new(Leaves);
-			HashSet<int> processedNodes = new();
-			
-			Dictionary<int, int> parentVisitCount = new();
-			foreach (int leaf in Leaves) 
-			{
-				parentVisitCount[leaf] = 0;
-			}
-
-			int conventionalRoot = -1;
+			UniqueQueue<int> pendingNodes = new();
+			pendingNodes.Enqueue(_rootByConvention);
 			
 			while (pendingNodes.Any())
 			{
 				int currentLeaf = pendingNodes.SafeDequeue();
-				bool isRoot = !_edges[currentLeaf].Except(processedNodes).Any();
-				int parent;
-				if (!isRoot)
-				{
-					parent = _edges[currentLeaf].Except(processedNodes).FirstOrDefault();
-					if (!parentVisitCount.ContainsKey(parent)) 
-					{
-						parentVisitCount[parent] = 0;
-					}
-				}
-				else
-				{
-					parent = -1;
-				}
+				bool isRoot = currentLeaf == _rootByConvention;
+				int currentParent = _childernToParent[currentLeaf];
+				var currentChildren = _parentToChildren[currentLeaf];
 
-				var children = _edges[currentLeaf].Intersect(processedNodes);
-
-				if (children.Count() == 1)
+				if (currentChildren.Count() == 1)
 				{
-					foreach (int child in children)
+					_parentToChildren[currentParent].Remove(currentLeaf);
+					foreach (int child in currentChildren)
 					{
 						// detatch this node from the tree
-						_edges[currentLeaf].Remove(child);
-						_edges[child].Remove(currentLeaf);
-
-						if (!isRoot)
-						{
-							_edges[parent].Remove(currentLeaf);
-							_edges[currentLeaf].Remove(parent);
-							AddEdge(child, parent);
-						}
-						
-						if (!isRoot) 
-						{
-							_childernToParent[child] = parent;
-							parentVisitCount[parent] ++;
-						}
+						_childernToParent[child] = currentParent;
+						_parentToChildren[currentParent].Add(child);
 					}
 				}
 				else
 				{
 					int target = currentLeaf;
-					while (children.Count() > 2)
+					HashSet<int> iterationChildren = currentChildren;
+					while (iterationChildren.Count() > 2)
 					{
-						int newIntermediate = ExtendNode(target, children);
+						int newIntermediate = ExtendNode(target, iterationChildren);
 
-						children = _edges[newIntermediate].Intersect(processedNodes);
+						iterationChildren = _parentToChildren[newIntermediate];
 						target = newIntermediate;
 					}
-					
-					if (!isRoot) 
-					{
-						_childernToParent[currentLeaf] = parent;
-						parentVisitCount[parent] ++;
-					}
 				}
 
-				// register the node to processed nodes
-				processedNodes.Add(currentLeaf);
-
-				if (!isRoot)
+				foreach (int child in currentChildren) 
 				{
-					if (_edges[parent].Count - parentVisitCount[parent] <= 1)
-					{
-						pendingNodes.SafeEnqueue(parent);
-					}
-				}
-				else
-				{
-					conventionalRoot = currentLeaf;
+					pendingNodes.Enqueue(child);
 				}
 			}
-			
-			// build mapping from parent to children
-			foreach ((int child, int parent) in _childernToParent) 
-			{
-				if (!_parentToChildren.ContainsKey(parent)) 
-				{
-					_parentToChildren[parent] = new();
-				}
-				_parentToChildren[parent].Add(child);
-			}
 
-			return conventionalRoot;
+			return _rootByConvention;
 		}
 
 		/// <summary>
@@ -423,7 +413,6 @@ namespace JT_2_DT
 
 			// add an intermediate node and connect it to nextleaf
 			int newIntermediate = DuplicateBag(target);
-			_childernToParent[newIntermediate] = target;
 
 			// move each node except for the last one to the new node
 			foreach (int child in children)
@@ -437,12 +426,9 @@ namespace JT_2_DT
 				}
 				else
 				{
-					// remove from nextLeaf
-					_edges[target].Remove(child);
-					_edges[child].Remove(target);
-
-					// add to newIntermediate
-					AddEdge(child, newIntermediate);
+					// reconnect the child to new intermediate
+					_parentToChildren[target].Remove(child);
+					_parentToChildren[newIntermediate].Add(child);
 					_childernToParent[child] = newIntermediate;
 				}
 			}
@@ -457,11 +443,14 @@ namespace JT_2_DT
 		/// <returns>the created node</returns>
 		private int DuplicateBag(int target)
 		{
-			int newIntermediate = _edges.Count;
-			_edges.Add(new() { target });
-			_edges[target].Add(newIntermediate);
+			int newIntermediate = _nodeCount;
 			_nodeCount++;
 			_clusterMapping.Add(_clusterMapping[target]);
+			
+			_parentToChildren[target].Add(newIntermediate);
+			_childernToParent[newIntermediate] = target;
+			_parentToChildren[newIntermediate] = new();
+			
 			return newIntermediate;
 		}
 
@@ -498,7 +487,7 @@ namespace JT_2_DT
 				
 				int paernt = _childernToParent[node];
 				
-				List<int> allSiblings = _parentToChildren[paernt];
+				HashSet<int> allSiblings = _parentToChildren[paernt];
 				if (processedNodes.IsSupersetOf(allSiblings)) 
 				{
 					pendingNodes.SafeEnqueue(paernt);
@@ -559,7 +548,7 @@ namespace JT_2_DT
 				graphNodeToSerializeNode[currentNode] = result.Count - 1;
 
 				// its intermediate node line
-				List<int> children = _parentToChildren[currentNode];
+				List<int> children = _parentToChildren[currentNode].ToList();
 				AddToResult($"I {graphNodeToSerializeNode[children[0]]} {graphNodeToSerializeNode[children[1]]}");
 				
 				// add parent
