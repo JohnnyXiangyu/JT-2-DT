@@ -23,7 +23,7 @@ public class FullPipeline
 		bool useCleanBuild = false;
 		string mode = "--dnnf";
 		string solverName = String.Empty;
-		string dtFile = String.Empty;
+		string outFile = String.Empty;
 
 		// load from input or commandline
 		if (args.Length >= 1)
@@ -44,24 +44,27 @@ public class FullPipeline
 		}
 		if (args.Length >= 5) 
 		{
-			dtFile = args[4];
+			outFile = args[4];
 		}
 
-		// moralization
+		// load input
 		Cnf formula = new(cnfPath);
 		logger.LogInformation($"[timer] cnf: {sharedTimer.Elapsed.TotalSeconds}");
+		
+		// moralization
 		MoralGraph graph = new(formula);
-		logger.LogInformation($"[timer] moral graph: {sharedTimer.Elapsed.TotalSeconds}");
-
+		
 		// if mode is moral graph, break here
 		if (mode == "--moral-graph")
 		{
-			// Console.Write(graph.Serialize());
+			Console.Write(graph.Serialize());
 			return;
 		}
-
-		// serialize graph to temp file
-		graph.OutputToFile(tempGrFilename);
+		else 
+		{
+			graph.OutputToFile(tempGrFilename);
+		}
+		logger.LogInformation($"[timer] moral graph: {sharedTimer.Elapsed.TotalSeconds}");
 
 		// load solver
 		ITwSolver solver;
@@ -98,6 +101,20 @@ public class FullPipeline
 		}
 		logger.LogInformation($"[timer] solver-finish: {sharedTimer.Elapsed.TotalSeconds}");
 		
+		if (mode == "--jointree") 
+		{
+			if (outFile != string.Empty) 
+			{
+				File.Copy(tempTdFilename, outFile, true);
+			}
+			else 
+			{
+				using StreamReader reader = new(tempTdFilename);
+				Console.Write(reader.ReadToEnd());
+			}
+			return;
+		}
+		
 		// dtree compilation
 		Dtree dtree = new(tempTdFilename, formula.Clauses, useCleanBuild);
 		logger.LogInformation($"[timer] dtree-pregen: {sharedTimer.Elapsed.TotalSeconds}");
@@ -105,9 +122,9 @@ public class FullPipeline
 		// if we only want dtree
 		if (mode == "--dtree")
 		{
-			if (dtFile != string.Empty) 
+			if (outFile != string.Empty) 
 			{
-				File.WriteAllLines(dtFile, dtree.SerializeAsDtree());
+				File.WriteAllLines(outFile, dtree.SerializeAsDtree());
 			}
 			else 
 			{

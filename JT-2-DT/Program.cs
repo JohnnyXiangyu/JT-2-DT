@@ -20,6 +20,18 @@ else if (args.Length >= 1 && args[0] == "--baseline")
 	}
 	new BaselineBenchmark(folders).Run();
 }
+else if (args.Length >= 1 && args[0] == "--jt2dt") 
+{
+	try 
+	{
+		using TimerAgent timer = new();
+		Jt2Dt.Run(args, Logger.ConsoleLogger());
+	}
+	catch (TimeoutException e) 
+	{
+		Console.WriteLine(e.Message);
+	}
+}
 else 
 {
 	try 
