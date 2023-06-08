@@ -18,6 +18,8 @@ namespace JT_2_DT
 		List<FamilyEquivalenceClass> _familyEqClasses = new();
 		Dictionary<int, FamilyEquivalenceClass> _clauseToEqClass = new();
 		
+		Dictionary<int, int> _childernToParent = new();
+		Dictionary<int, List<int>> _parentToChildren = new();
 		
 		// TODO: remember to remove the timers
 		Stopwatch _timer = new();
@@ -323,7 +325,7 @@ namespace JT_2_DT
 			HashSet<int> processedNodes = new();
 
 			int conventionalRoot = -1;
-
+			
 			while (pendingNodes.Any())
 			{
 				int currentLeaf = pendingNodes.SafeDequeue();
@@ -347,12 +349,17 @@ namespace JT_2_DT
 						// detatch this node from the tree
 						_edges[currentLeaf].Remove(child);
 						_edges[child].Remove(currentLeaf);
-						_edges[parent].Remove(currentLeaf);
-						_edges[currentLeaf].Remove(parent);
 
 						if (!isRoot)
 						{
+							_edges[parent].Remove(currentLeaf);
+							_edges[currentLeaf].Remove(parent);
 							AddEdge(child, parent);
+						}
+						
+						if (!isRoot) 
+						{
+							_childernToParent[child] = parent;
 						}
 					}
 				}
@@ -365,6 +372,11 @@ namespace JT_2_DT
 
 						children = _edges[newIntermediate].Intersect(processedNodes);
 						target = newIntermediate;
+					}
+					
+					if (!isRoot) 
+					{
+						_childernToParent[currentLeaf] = parent;
 					}
 				}
 
@@ -383,6 +395,16 @@ namespace JT_2_DT
 					conventionalRoot = currentLeaf;
 				}
 			}
+			
+			// build mapping from parent to children
+			foreach ((int child, int parent) in _childernToParent) 
+			{
+				if (!_parentToChildren.ContainsKey(parent)) 
+				{
+					_parentToChildren[parent] = new();
+				}
+				_parentToChildren[parent].Add(child);
+			}
 
 			return conventionalRoot;
 		}
@@ -400,6 +422,7 @@ namespace JT_2_DT
 
 			// add an intermediate node and connect it to nextleaf
 			int newIntermediate = DuplicateBag(target);
+			_childernToParent[newIntermediate] = target;
 
 			// move each node except for the last one to the new node
 			foreach (int child in children)
@@ -419,6 +442,7 @@ namespace JT_2_DT
 
 					// add to newIntermediate
 					AddEdge(child, newIntermediate);
+					_childernToParent[child] = newIntermediate;
 				}
 			}
 
@@ -465,26 +489,18 @@ namespace JT_2_DT
 
 			// helper functions
 			void AddToResult(string newLine) => result.Add(newLine);
-
-			bool LeafCheckByProgress(int node)
-			{
-				var neighbours = _edges[node];
-				var unseenNeighbours = neighbours.Except(processedNodes);
-				if (node == _rootByConvention)
-					return !unseenNeighbours.Any();
-				return unseenNeighbours.Count() == 1;
-			}
 			
 			void TryPushParent(int node)
 			{
-				IEnumerable<int> unvisitedNeighbours = _edges[node].Except(processedNodes);
+				if (node == _rootByConvention)
+					return;
 				
-				foreach (int neighbour in unvisitedNeighbours)
+				int paernt = _childernToParent[node];
+				
+				List<int> allSiblings = _parentToChildren[paernt];
+				if (processedNodes.IsSupersetOf(allSiblings)) 
 				{
-					if (LeafCheckByProgress(neighbour))
-					{
-						pendingNodes.SafeEnqueue(neighbour);
-					}
+					pendingNodes.SafeEnqueue(paernt);
 				}
 			}
 
@@ -542,9 +558,9 @@ namespace JT_2_DT
 				graphNodeToSerializeNode[currentNode] = result.Count - 1;
 
 				// its intermediate node line
-				var children = _edges[currentNode].Intersect(processedNodes);
-				AddToResult($"I {graphNodeToSerializeNode[children.First()]} {graphNodeToSerializeNode[children.ElementAt(1)]}");
-
+				List<int> children = _parentToChildren[currentNode];
+				AddToResult($"I {graphNodeToSerializeNode[children[0]]} {graphNodeToSerializeNode[children[1]]}");
+				
 				// add parent
 				TryPushParent(currentNode);
 			}
