@@ -28,13 +28,65 @@
             "stopAtEntry": false
         },
         {
-            "name": "Rolling",
+            "name": "jt2dt",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build Debug",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
-            "args": ["--dtree", "Examples/sample/track1_051.cnf", "--dirty", "--tamaki2017-heuristic"],
+            "args": ["--jt2dt", "Examples/sample/track1_011.cnf", "--dirty", "011.td", "011.dtree"],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "small td",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Debug",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
+            "args": ["--jt2dt", "test.cnf", "--dirty", "test.td", "test.dtree"],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "lucas",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Debug",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
+            "args": ["--dnnf", "Examples/sample/lucas.cnf", "--dirty", "--tamaki2017-exact", "lucas.dtree"],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "011",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Debug",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
+            "args": ["--dnnf", "Examples/sample/track1_011.cnf", "--dirty", "--tamaki2017-heuristic", "lucas.dtree"],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "193 jt2dt",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Debug",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/net6.0/JT-2-DT.dll",
+            "args": ["--jt2dt", "Examples/sample/track1_193.cnf", "--dirty", "193.td", "193.dtree"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
