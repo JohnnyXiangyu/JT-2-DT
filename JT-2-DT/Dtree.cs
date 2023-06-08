@@ -297,6 +297,8 @@ namespace JT_2_DT
 			_rootByConvention = ResolveAsBinaryTree();
 		}
 
+
+		int _currentStart =0;
 		/// <summary>
 		/// Insert a new node that originates from a family from the source CNF.
 		/// </summary>
@@ -306,9 +308,12 @@ namespace JT_2_DT
 		{
 			for (int i = 0; i < _nodeCount; i++)
 			{
-				if (_clusterMapping[i].IsSupersetOf(family))
+				int index = (_currentStart + i) % _nodeCount;
+				
+				if (_clusterMapping[index].IsSupersetOf(family))
 				{
-					AddEdge(i, newIndex);
+					AddEdge(index, newIndex);
+					_currentStart = index;
 					return;
 				}
 			}
@@ -323,6 +328,12 @@ namespace JT_2_DT
 			// we know leaves will not change during any time when this is called
 			UniqueQueue<int> pendingNodes = new(Leaves);
 			HashSet<int> processedNodes = new();
+			
+			Dictionary<int, int> parentVisitCount = new();
+			foreach (int leaf in Leaves) 
+			{
+				parentVisitCount[leaf] = 0;
+			}
 
 			int conventionalRoot = -1;
 			
@@ -334,6 +345,10 @@ namespace JT_2_DT
 				if (!isRoot)
 				{
 					parent = _edges[currentLeaf].Except(processedNodes).FirstOrDefault();
+					if (!parentVisitCount.ContainsKey(parent)) 
+					{
+						parentVisitCount[parent] = 0;
+					}
 				}
 				else
 				{
@@ -360,6 +375,7 @@ namespace JT_2_DT
 						if (!isRoot) 
 						{
 							_childernToParent[child] = parent;
+							parentVisitCount[parent] ++;
 						}
 					}
 				}
@@ -377,6 +393,7 @@ namespace JT_2_DT
 					if (!isRoot) 
 					{
 						_childernToParent[currentLeaf] = parent;
+						parentVisitCount[parent] ++;
 					}
 				}
 
@@ -385,7 +402,7 @@ namespace JT_2_DT
 
 				if (!isRoot)
 				{
-					if (_edges[parent].Except(processedNodes).Count() <= 1)
+					if (_edges[parent].Count - parentVisitCount[parent] <= 1)
 					{
 						pendingNodes.SafeEnqueue(parent);
 					}
