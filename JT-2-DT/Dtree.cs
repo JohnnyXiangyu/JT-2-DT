@@ -1,5 +1,5 @@
 using JT_2_DT.Utils;
-using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace JT_2_DT
 {
@@ -9,7 +9,7 @@ namespace JT_2_DT
 
 		private List<HashSet<int>> _edges = new();
 		private List<HashSet<int>> _clusterMapping = new();
-		private readonly ConcurrentDictionary<int, int> _nodeToClause = new();
+		private readonly Dictionary<int, int> _nodeToClause = new();
 		private int _nodeCount;
 		private int _rootByConvention;
 
@@ -17,11 +17,18 @@ namespace JT_2_DT
 		private readonly bool _cleanBuild;
 		List<FamilyEquivalenceClass> _familyEqClasses = new();
 		Dictionary<int, FamilyEquivalenceClass> _clauseToEqClass = new();
+		
+		
+		// TODO: remember to remove the timers
+		Stopwatch _timer = new();
 
 		public Dtree(string filePath, IEnumerable<IEnumerable<int>> families, bool useCleanCompiler = false)
 		{
+			_timer.Start();
+			
 			LoadTreeDecompFile(filePath);
-
+			Console.Error.WriteLine($"[dtree] load td file: {_timer.Elapsed.TotalSeconds}");			
+			
 			_cleanBuild = useCleanCompiler;
 			if (!useCleanCompiler)
 			{
@@ -31,6 +38,8 @@ namespace JT_2_DT
 			{
 				MakeCleanDtree(families);
 			}
+			
+			_timer.Stop();
 		}
 
 		/// <summary>
@@ -44,6 +53,11 @@ namespace JT_2_DT
 
 			foreach (var line in lines)
 			{
+				if (line.Length == 0) 
+				{
+					continue;
+				}
+				
 				switch (line[0])
 				{
 					case 's':
@@ -174,6 +188,8 @@ namespace JT_2_DT
 				_clusterMapping.Add(new(fam));
 			}
 			ExtendNode(families.Count());
+			
+			Console.Error.WriteLine($"[dtree] extended nodes: {_timer.Elapsed.TotalSeconds}");
 
 			HashSet<int> protectedNodes = new();
 			int index = 0;
@@ -187,15 +203,21 @@ namespace JT_2_DT
 				protectedNodes.Add(newNodeIndex);
 				index++;
 			}
+			
+			Console.Error.WriteLine($"[dtree] inserted families: {_timer.Elapsed.TotalSeconds}");
 
 			// purge out useless leaves
 			PurgeLeavesInRange(oldLeaves, protectedNodes);
-
+			
+			Console.Error.WriteLine($"[dtree] purged leaves: {_timer.Elapsed.TotalSeconds}");			
+			
 			// finalize insertion by updating node count
 			_nodeCount += families.Count();
 
 			// last step is to resolve the tree to ensure it's a full binary tree
 			_rootByConvention = ResolveAsBinaryTree();
+			
+			Console.Error.WriteLine($"[dtree] reduced: {_timer.Elapsed.TotalSeconds}");
 		}
 
 		/// <summary>
@@ -430,6 +452,7 @@ namespace JT_2_DT
 			UniqueQueue<int> pendingNodes = new();
 			HashSet<int> processedNodes = new();
 			Dictionary<int, int> graphNodeToSerializeNode = new();
+			int[] childVisitCount = new int[_nodeCount];
 
 			// only for clean build
 			HashSet<int> subsumingNodes = new();
@@ -451,10 +474,12 @@ namespace JT_2_DT
 					return !unseenNeighbours.Any();
 				return unseenNeighbours.Count() == 1;
 			}
-
+			
 			void TryPushParent(int node)
 			{
-				foreach (int neighbour in _edges[node])
+				IEnumerable<int> unvisitedNeighbours = _edges[node].Intersect(processedNodes);
+				
+				foreach (int neighbour in unvisitedNeighbours)
 				{
 					if (LeafCheckByProgress(neighbour))
 					{
