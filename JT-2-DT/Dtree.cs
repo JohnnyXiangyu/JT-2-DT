@@ -358,7 +358,8 @@ namespace JT_2_DT
 		private int ResolveAsBinaryTree()
 		{
 			// we know leaves will not change during any time when this is called
-			UniqueQueue<int> pendingNodes = new(Leaves);
+			UniqueQueue<int> pendingNodes = new();
+			pendingNodes.Enqueue(_rootByConvention);
 			
 			while (pendingNodes.Any())
 			{
@@ -427,6 +428,7 @@ namespace JT_2_DT
 				{
 					// reconnect the child to new intermediate
 					_parentToChildren[target].Remove(child);
+					_parentToChildren[newIntermediate].Add(child);
 					_childernToParent[child] = newIntermediate;
 				}
 			}
@@ -444,8 +446,11 @@ namespace JT_2_DT
 			int newIntermediate = _nodeCount;
 			_nodeCount++;
 			_clusterMapping.Add(_clusterMapping[target]);
+			
 			_parentToChildren[target].Add(newIntermediate);
 			_childernToParent[newIntermediate] = target;
+			_parentToChildren[newIntermediate] = new();
+			
 			return newIntermediate;
 		}
 
