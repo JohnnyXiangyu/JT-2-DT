@@ -167,7 +167,6 @@ public class CorrectnessBenchmark
 			Log("end dtree");
 			
 			// start c2d
-			int renamingTime = Defines.BaselineTimeout - (int)Math.Floor(totalTimer.Elapsed.TotalSeconds);
 			string c2dPath = Path.Combine("external_executables", $"c2d_{Defines.OsSuffix}");
 			using (Process c2dInstance = new())
 			{
@@ -187,10 +186,10 @@ public class CorrectnessBenchmark
 					}
 				});
 				
-				if (!c2dInstance.WaitForExit(renamingTime)) 
+				if (!c2dInstance.WaitForExit(Defines.C2dTimeout)) 
 				{
 					c2dInstance.Kill();
-					throw new TimeoutException($"c2d didn't finish within remaining {renamingTime} ms");
+					throw new TimeoutException($"c2d didn't finish within remaining {Defines.C2dTimeout} ms");
 				}
 				
 				readerTask.Wait();

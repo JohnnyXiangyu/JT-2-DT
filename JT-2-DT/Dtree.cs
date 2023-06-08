@@ -20,16 +20,10 @@ namespace JT_2_DT
 		
 		Dictionary<int, int> _childernToParent = new();
 		Dictionary<int, List<int>> _parentToChildren = new();
-		
-		// TODO: remember to remove the timers
-		Stopwatch _timer = new();
 
 		public Dtree(string filePath, IEnumerable<IEnumerable<int>> families, bool useCleanCompiler = false)
 		{
-			_timer.Start();
-			
-			LoadTreeDecompFile(filePath);
-			Console.Error.WriteLine($"[dtree] load td file: {_timer.Elapsed.TotalSeconds}");			
+			LoadTreeDecompFile(filePath);		
 			
 			_cleanBuild = useCleanCompiler;
 			if (!useCleanCompiler)
@@ -40,8 +34,6 @@ namespace JT_2_DT
 			{
 				MakeCleanDtree(families);
 			}
-			
-			_timer.Stop();
 		}
 
 		/// <summary>
@@ -191,8 +183,6 @@ namespace JT_2_DT
 			}
 			ExtendNode(families.Count());
 			
-			Console.Error.WriteLine($"[dtree] extended nodes: {_timer.Elapsed.TotalSeconds}");
-
 			HashSet<int> protectedNodes = new();
 			int index = 0;
 			foreach (IEnumerable<int> fam in families)
@@ -206,20 +196,14 @@ namespace JT_2_DT
 				index++;
 			}
 			
-			Console.Error.WriteLine($"[dtree] inserted families: {_timer.Elapsed.TotalSeconds}");
-
 			// purge out useless leaves
 			PurgeLeavesInRange(oldLeaves, protectedNodes);
-			
-			Console.Error.WriteLine($"[dtree] purged leaves: {_timer.Elapsed.TotalSeconds}");			
 			
 			// finalize insertion by updating node count
 			_nodeCount += families.Count();
 
 			// last step is to resolve the tree to ensure it's a full binary tree
 			_rootByConvention = ResolveAsBinaryTree();
-			
-			Console.Error.WriteLine($"[dtree] reduced: {_timer.Elapsed.TotalSeconds}");
 		}
 
 		/// <summary>
